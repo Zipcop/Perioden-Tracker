@@ -184,7 +184,9 @@
                 <span class="mr-2 text-3xl">🩸</span>
                 Zyklus Tracker
             </h1>
-            <p id="cycle-status" class="privacy-blur text-white/90 font-semibold text-lg drop-shadow-sm transition-all duration-300">Lade Daten...</p>
+            <div id="cycle-status" class="privacy-blur text-white/90 font-semibold text-lg drop-shadow-sm transition-all duration-300 min-h-[3rem] flex flex-col justify-center items-center">
+                <p>Lade Daten...</p>
+            </div>
             <div id="phase-badge" class="privacy-blur inline-block mt-3 bg-white/20 backdrop-blur-md border border-white/40 rounded-full px-5 py-1.5 text-sm font-bold text-white shadow-lg hidden">Phase</div>
             
             <div class="absolute top-4 right-4 flex gap-2">
@@ -812,10 +814,24 @@
                 const cycleDay = Math.floor(diffTime / (1000 * 60 * 60 * 24)) + 1;
                 const daysUntil = usedLen - cycleDay + 1;
 
+                // --- NEU: Toleranz-Berechnung ---
                 let buffer = 1;
                 if (stats.variability > 2) buffer = 2;
                 if (stats.variability > 4) buffer = 4;
                 const bufferText = stats.variability > 0 ? ` (±${buffer})` : "";
+
+                // Berechne voraussichtliches Start-Datum
+                const nextPeriodDate = new Date(lastStartDate);
+                nextPeriodDate.setDate(nextPeriodDate.getDate() + usedLen);
+                
+                // Berechne Fenster
+                const rangeStart = new Date(nextPeriodDate);
+                rangeStart.setDate(rangeStart.getDate() - buffer);
+                const rangeEnd = new Date(nextPeriodDate);
+                rangeEnd.setDate(rangeEnd.getDate() + buffer);
+                
+                const formatDate = (d) => d.toLocaleDateString('de-DE', { day: '2-digit', month: 'short' });
+                const rangeString = `${formatDate(rangeStart)} - ${formatDate(rangeEnd)}`;
 
                 if (cycleDay < 1) {
                     statusEl.textContent = "Start in der Zukunft";
@@ -835,14 +851,19 @@
                         const daysLeft = avgDur - cycleDay; 
                         
                         if (daysLeft > 0) {
-                            statusEl.innerHTML = `Tag ${cycleDay} <span class="text-sm font-medium opacity-80 block mt-0.5">Endet in ca. ${daysLeft} Tagen</span>`;
+                            statusEl.innerHTML = `<span class="text-2xl font-bold block">Tag ${cycleDay}</span><span class="text-sm font-medium opacity-80 block mt-1">Endet in ca. ${daysLeft} Tagen</span>`;
                         } else if (daysLeft === 0) {
-                             statusEl.innerHTML = `Tag ${cycleDay} <span class="text-sm font-medium opacity-80 block mt-0.5">Endet voraussichtlich heute</span>`;
+                             statusEl.innerHTML = `<span class="text-2xl font-bold block">Tag ${cycleDay}</span><span class="text-sm font-medium opacity-80 block mt-1">Endet voraussichtlich heute</span>`;
                         } else {
                              statusEl.textContent = `Tag ${cycleDay} der Periode`;
                         }
                     } else {
-                        statusEl.textContent = daysUntil > 0 ? `Noch ${daysUntil} Tage${bufferText}` : `Überfällig (${Math.abs(daysUntil)})`;
+                        // Erweiterte Anzeige mit Vorhersage-Fenster
+                        if (daysUntil > 0) {
+                             statusEl.innerHTML = `<span class="text-2xl font-bold block">Noch ${daysUntil} Tage</span><span class="text-sm font-medium opacity-80 block mt-1">Erwartet: ${rangeString}</span>`;
+                        } else {
+                             statusEl.textContent = `Überfällig (${Math.abs(daysUntil)})`;
+                        }
                     }
 
                     phaseBadge.textContent = `${phase.name} (T.${cycleDay})`;
