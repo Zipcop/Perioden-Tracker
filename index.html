@@ -267,6 +267,13 @@
         </p>
     </div>
 
+    <!-- FOOTER -->
+    <footer class="glass-panel px-6 py-3 rounded-full mb-8 fade-in flex items-center gap-3 shadow-lg">
+        <span class="text-xs font-bold opacity-70" style="color: var(--text-primary)">Zyklus Tracker</span>
+        <span class="w-1 h-1 rounded-full bg-slate-300"></span>
+        <span class="text-[10px] font-medium opacity-50" style="color: var(--text-primary)">© 2025</span>
+    </footer>
+
     <!-- MODAL: Tag Details -->
     <div id="day-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/20 backdrop-blur-sm fade-in" onclick="if(event.target === this) closeDayModal()">
         <div class="bg-white rounded-[2rem] shadow-2xl w-full max-w-xs overflow-hidden transform transition-all scale-100">
@@ -684,7 +691,7 @@
             saveData(); updateModalUI();
         }
 
-        // --- INTELLIGENTE STATISTIK 3.0 ---
+        // --- INTELLIGENTE STATISTIK 3.0 (Update: Ausreißer-Schutz) ---
         function getCycleStats() {
             const keys = Object.keys(periodData).sort();
             if (keys.length === 0) return { lastStart: null, predictedLength: 0, medianDuration: 0, cycles: [], variability: 0, method: 'none' };
@@ -715,38 +722,46 @@
                 }
             });
 
-            let predictionLengths = [];
-            let method = "average"; 
-            
-            if (rawLengths.length > 0) {
-                const sortedRaw = [...rawLengths].sort((a,b) => a-b);
-                const median = sortedRaw[Math.floor(sortedRaw.length / 2)];
-                predictionLengths = rawLengths.filter(len => len > (median * 0.6) && len < (median * 1.5));
-            } else {
-                predictionLengths = rawLengths;
-            }
-
+            // --- ROBUSTE VORHERSAGE LOGIK ---
+            let predictedLen = 28; // Fallback
+            let method = "average";
             let variability = 0;
-            let predictedLen = 0;
 
-            if (predictionLengths.length >= 2) {
-                const mean = predictionLengths.reduce((a,b)=>a+b,0)/predictionLengths.length;
-                const variance = predictionLengths.reduce((a,b) => a + Math.pow(b-mean, 2), 0) / predictionLengths.length;
-                variability = Math.sqrt(variance);
-            }
+            if (rawLengths.length > 0) {
+                // 1. Berechne den Median aller Daten (sehr stabil gegen Ausreißer)
+                const sortedRaw = [...rawLengths].sort((a,b) => a-b);
+                const globalMedian = sortedRaw[Math.floor(sortedRaw.length / 2)];
 
-            if (predictionLengths.length >= 3) {
-                if (variability < 2.5) {
-                    const recent = predictionLengths.slice(-3);
-                    predictedLen = Math.round((recent[2]*0.5) + (recent[1]*0.3) + (recent[0]*0.2));
-                    method = "trend";
-                } else {
-                    const sorted = [...predictionLengths].sort((a,b)=>a-b);
-                    predictedLen = sorted[Math.floor(sorted.length/2)];
-                    method = "median";
+                // 2. Prüfe, ob der LETZTE Zyklus stark vom Median abweicht (> 3 Tage)
+                const lastCycle = rawLengths[rawLengths.length - 1];
+                const isRecentOutlier = Math.abs(lastCycle - globalMedian) > 3;
+
+                // 3. Variabilität berechnen (Standardabweichung)
+                if (rawLengths.length >= 2) {
+                    const mean = rawLengths.reduce((a,b)=>a+b,0)/rawLengths.length;
+                    const variance = rawLengths.reduce((a,b) => a + Math.pow(b-mean, 2), 0) / rawLengths.length;
+                    variability = Math.sqrt(variance);
                 }
-            } else if (predictionLengths.length > 0) {
-                predictedLen = Math.round(predictionLengths.reduce((a,b)=>a+b,0)/predictionLengths.length);
+
+                if (rawLengths.length < 3) {
+                    // Wenig Daten: Nimm Durchschnitt
+                    predictedLen = Math.round(rawLengths.reduce((a,b)=>a+b,0)/rawLengths.length);
+                } else {
+                    if (isRecentOutlier) {
+                        // Strategie A: Einmaliger Ausreißer erkannt -> Ignorieren, nutze Median
+                        predictedLen = globalMedian;
+                        method = "median (stabilisiert)";
+                    } else if (variability < 2) {
+                        // Strategie B: Sehr stabil -> Nutze Trend (gewichtet)
+                        const recent = rawLengths.slice(-3);
+                        predictedLen = Math.round((recent[2]*0.5) + (recent[1]*0.3) + (recent[0]*0.2));
+                        method = "trend";
+                    } else {
+                        // Strategie C: Unruhig -> Nutze Median (sicherer)
+                        predictedLen = globalMedian;
+                        method = "median";
+                    }
+                }
             }
 
             periodDurations.sort((a,b)=>a-b);
@@ -862,8 +877,15 @@
                  lenFeedback.className = "text-[10px] font-bold mt-1 text-orange-600 bg-orange-50/90 inline-block px-2 py-0.5 rounded-lg border border-orange-100";
             } else {
                  const methodText = stats.method === 'median' ? ' (Median)' : ' (Trend)';
-                 lenFeedback.textContent = "Normal" + methodText;
-                 lenFeedback.className = "text-[10px] font-bold mt-1 text-green-600 bg-green-50/80 inline-block px-2 py-0.5 rounded-lg";
+                 
+                 // Feedback anpassen, falls Abweichung erkannt wurde
+                 if (stats.method.includes("stabilisiert")) {
+                     lenFeedback.textContent = "Abweichung ignoriert";
+                     lenFeedback.className = "text-[10px] font-bold mt-1 text-blue-600 bg-blue-50/80 inline-block px-2 py-0.5 rounded-lg";
+                 } else {
+                     lenFeedback.textContent = "Normal" + methodText;
+                     lenFeedback.className = "text-[10px] font-bold mt-1 text-green-600 bg-green-50/80 inline-block px-2 py-0.5 rounded-lg";
+                 }
             }
 
             if (stats.variability > 4) {
