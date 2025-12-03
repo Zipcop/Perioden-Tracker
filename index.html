@@ -35,15 +35,23 @@
             --shape-fill: rgba(255, 255, 255, 0.92);
         }
 
-        body { 
-            font-family: 'Quicksand', sans-serif; 
+        /* Fix für weißen Hintergrund beim Scrollen (Overscroll) */
+        html {
             background: var(--bg-gradient);
             background-attachment: fixed;
+            min-height: 100%;
+            transition: background 0.5s ease;
+        }
+
+        body { 
+            font-family: 'Quicksand', sans-serif; 
+            /* Hintergrund transparent machen, damit html-Hintergrund sichtbar ist */
+            background: transparent; 
             min-height: 100vh;
             -webkit-user-select: none;
             user-select: none;
             overscroll-behavior-y: none;
-            transition: background 0.5s ease, color 0.5s ease;
+            transition: color 0.5s ease;
         }
 
         /* Glassmorphism Logic */
@@ -223,7 +231,8 @@
 
         <!-- Info Box (Updated with Tips) -->
         <div id="phase-info-box" class="glass-panel mx-6 mt-4 p-4 rounded-2xl flex items-start gap-3 hidden shadow-sm transition-all duration-500">
-            <div class="bg-white/90 p-2.5 rounded-full shadow-inner shrink-0 text-xl" style="color: var(--text-primary)"><i class="fa-solid fa-wand-magic-sparkles"></i></div>
+            <!-- FIX: Added dark:bg-slate-700 to ensure icon circle is dark in dark mode so the light icon shows up -->
+            <div class="bg-white/90 dark:bg-slate-700 p-2.5 rounded-full shadow-inner shrink-0 text-xl" style="color: var(--text-primary)"><i class="fa-solid fa-wand-magic-sparkles"></i></div>
             <div class="privacy-blur transition-all duration-300">
                 <h3 class="font-bold text-sm mb-1" style="color: var(--text-primary)" id="phase-title">Tipps für dich</h3>
                 <p class="text-xs leading-relaxed font-medium" style="color: var(--day-text)" id="phase-desc">Lade Tipps...</p>
