@@ -123,9 +123,36 @@
         }
         .custom-shape-divider-bottom .shape-fill { fill: rgba(255,255,255,0.85); }
 
-        /* Symptom Buttons */
-        .symptom-btn { transition: all 0.2s; opacity: 0.6; transform: scale(0.95); }
-        .symptom-btn.active { opacity: 1; transform: scale(1.1); border-color: #ec4899; background-color: #fce7f3; }
+        /* Symptom Buttons Styles */
+        /* Grundzustand des Icons */
+        .symptom-btn { 
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); 
+            opacity: 0.7; 
+            transform: scale(1);
+            background-color: white;
+            border-color: #e2e8f0; /* slate-200 */
+        }
+        
+        /* Hover für Desktop */
+        .symptom-wrapper:hover .symptom-btn {
+            border-color: #fbcfe8; /* pink-200 */
+        }
+
+        /* Aktiver Zustand (ausgewählt) */
+        .symptom-btn.active { 
+            opacity: 1; 
+            transform: scale(1.1); 
+            border-color: #ec4899 !important; /* pink-500 */
+            background-color: #fce7f3 !important; /* pink-100 */
+            color: #be123c;
+            box-shadow: 0 4px 12px rgba(236, 72, 153, 0.15);
+        }
+        
+        /* Aktiver Text Style */
+        .symptom-wrapper.selected span {
+            color: #ec4899;
+            font-weight: 800;
+        }
     </style>
 </head>
 <body class="flex flex-col items-center py-6 px-4 md:py-10">
@@ -133,9 +160,9 @@
     <div class="glass-panel w-full max-w-[500px] rounded-[2.5rem] shadow-2xl shadow-black/10 overflow-hidden fade-in mb-8 relative">
         
         <!-- Header -->
-        <div class="relative bg-gradient-to-r from-pink-500 via-rose-500 to-orange-400 pt-8 pb-14 px-6 text-white text-center">
-            <h1 class="text-3xl font-bold mb-1 tracking-tight flex items-center justify-center drop-shadow-sm">
-                <!-- Kleines Icon im Header - Jetzt zuverlässige CDN Quelle -->
+        <div class="relative bg-gradient-to-r from-pink-500 via-rose-500 to-orange-400 pt-16 pb-14 px-6 text-white text-center">
+            <h1 class="text-2xl md:text-3xl font-bold mb-1 tracking-tight flex items-center justify-center drop-shadow-sm">
+                <!-- Kleines Icon im Header -->
                 <img src="https://cdnjs.cloudflare.com/ajax/libs/twemoji/14.0.2/72x72/1fa78.png" alt="Icon" class="w-8 h-8 mr-2 drop-shadow-md">
                 Zyklus Tracker
             </h1>
@@ -146,7 +173,7 @@
             </div>
 
             <!-- Header Buttons -->
-            <div class="absolute top-6 right-6 flex gap-2">
+            <div class="absolute top-4 right-4 flex gap-2">
                 <button onclick="togglePrivacy()" id="privacy-btn" class="bg-white/10 hover:bg-white/30 rounded-full p-2 w-10 h-10 transition backdrop-blur-sm flex items-center justify-center">
                     <i class="fa-regular fa-eye text-white"></i>
                 </button>
@@ -229,9 +256,8 @@
     </div>
 
     <!-- MODAL: Tag Details (Symptome & Periode) -->
-    <!-- WICHTIG: onclick auf dem Hintergrund container schließt das Modal -->
     <div id="day-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/20 backdrop-blur-sm fade-in" onclick="if(event.target === this) closeDayModal()">
-        <div class="bg-white rounded-3xl shadow-2xl w-full max-w-sm overflow-hidden transform transition-all scale-100">
+        <div class="bg-white rounded-[2rem] shadow-2xl w-full max-w-xs overflow-hidden transform transition-all scale-100">
             <div class="bg-gradient-to-r from-pink-500 to-rose-500 p-4 text-white text-center relative">
                 <h3 id="modal-date-title" class="text-lg font-bold">Details</h3>
                 <button onclick="closeDayModal()" class="absolute top-4 right-4 text-white/80 hover:text-white"><i class="fa-solid fa-xmark fa-lg"></i></button>
@@ -246,22 +272,49 @@
                     </button>
                 </div>
 
-                <!-- Stimmung -->
-                <p class="text-xs font-bold text-slate-400 uppercase mb-2">Stimmung</p>
-                <div class="flex justify-between mb-4">
-                    <button onclick="toggleSymptom('mood', 'happy')" class="symptom-btn w-12 h-12 rounded-xl border border-slate-200 flex items-center justify-center text-2xl" data-cat="mood" data-val="happy">😊</button>
-                    <button onclick="toggleSymptom('mood', 'neutral')" class="symptom-btn w-12 h-12 rounded-xl border border-slate-200 flex items-center justify-center text-2xl" data-cat="mood" data-val="neutral">😐</button>
-                    <button onclick="toggleSymptom('mood', 'sad')" class="symptom-btn w-12 h-12 rounded-xl border border-slate-200 flex items-center justify-center text-2xl" data-cat="mood" data-val="sad">😢</button>
-                    <button onclick="toggleSymptom('mood', 'angry')" class="symptom-btn w-12 h-12 rounded-xl border border-slate-200 flex items-center justify-center text-2xl" data-cat="mood" data-val="angry">😡</button>
+                <!-- Stimmung (Nur Emojis) -->
+                <p class="text-xs font-bold text-slate-400 uppercase mb-3 tracking-wider">Stimmung</p>
+                <div class="flex justify-between mb-6">
+                    <button onclick="toggleSymptom('mood', 'happy')" class="symptom-btn w-12 h-12 rounded-2xl border border-slate-200 flex items-center justify-center text-2xl" data-cat="mood" data-val="happy">😊</button>
+                    <button onclick="toggleSymptom('mood', 'neutral')" class="symptom-btn w-12 h-12 rounded-2xl border border-slate-200 flex items-center justify-center text-2xl" data-cat="mood" data-val="neutral">😐</button>
+                    <button onclick="toggleSymptom('mood', 'sad')" class="symptom-btn w-12 h-12 rounded-2xl border border-slate-200 flex items-center justify-center text-2xl" data-cat="mood" data-val="sad">😢</button>
+                    <button onclick="toggleSymptom('mood', 'angry')" class="symptom-btn w-12 h-12 rounded-2xl border border-slate-200 flex items-center justify-center text-2xl" data-cat="mood" data-val="angry">😡</button>
                 </div>
 
-                <!-- Körper -->
-                <p class="text-xs font-bold text-slate-400 uppercase mb-2">Körper</p>
-                <div class="flex justify-between mb-2">
-                    <button onclick="toggleSymptom('body', 'cramps')" class="symptom-btn w-12 h-12 rounded-xl border border-slate-200 flex flex-col items-center justify-center text-xs text-slate-600" data-cat="body" data-val="cramps"><span class="text-xl mb-1">⚡</span>Krämpfe</button>
-                    <button onclick="toggleSymptom('body', 'headache')" class="symptom-btn w-12 h-12 rounded-xl border border-slate-200 flex flex-col items-center justify-center text-xs text-slate-600" data-cat="body" data-val="headache"><span class="text-xl mb-1">🤕</span>Kopf</button>
-                    <button onclick="toggleSymptom('body', 'tired')" class="symptom-btn w-12 h-12 rounded-xl border border-slate-200 flex flex-col items-center justify-center text-xs text-slate-600" data-cat="body" data-val="tired"><span class="text-xl mb-1">💤</span>Müde</button>
-                    <button onclick="toggleSymptom('body', 'acne')" class="symptom-btn w-12 h-12 rounded-xl border border-slate-200 flex flex-col items-center justify-center text-xs text-slate-600" data-cat="body" data-val="acne"><span class="text-xl mb-1">🔴</span>Haut</button>
+                <!-- Körper (Icon + Text darunter für mehr Platz) -->
+                <p class="text-xs font-bold text-slate-400 uppercase mb-3 tracking-wider">Körper</p>
+                <div class="flex justify-between gap-2">
+                    <!-- KRAMPFE -->
+                    <div class="flex flex-col items-center gap-1 cursor-pointer symptom-wrapper" onclick="toggleSymptom('body', 'cramps')" data-target-val="cramps">
+                        <div class="symptom-btn w-12 h-12 rounded-2xl border border-slate-200 flex items-center justify-center text-xl bg-white" data-cat="body" data-val="cramps">
+                            ⚡
+                        </div>
+                        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-tight">Krämpfe</span>
+                    </div>
+
+                    <!-- KOPF -->
+                    <div class="flex flex-col items-center gap-1 cursor-pointer symptom-wrapper" onclick="toggleSymptom('body', 'headache')" data-target-val="headache">
+                        <div class="symptom-btn w-12 h-12 rounded-2xl border border-slate-200 flex items-center justify-center text-xl bg-white" data-cat="body" data-val="headache">
+                            🤕
+                        </div>
+                        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-tight">Kopf</span>
+                    </div>
+
+                    <!-- MÜDE -->
+                    <div class="flex flex-col items-center gap-1 cursor-pointer symptom-wrapper" onclick="toggleSymptom('body', 'tired')" data-target-val="tired">
+                        <div class="symptom-btn w-12 h-12 rounded-2xl border border-slate-200 flex items-center justify-center text-xl bg-white" data-cat="body" data-val="tired">
+                            💤
+                        </div>
+                        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-tight">Müde</span>
+                    </div>
+
+                    <!-- HAUT -->
+                    <div class="flex flex-col items-center gap-1 cursor-pointer symptom-wrapper" onclick="toggleSymptom('body', 'acne')" data-target-val="acne">
+                        <div class="symptom-btn w-12 h-12 rounded-2xl border border-slate-200 flex items-center justify-center text-xl bg-white" data-cat="body" data-val="acne">
+                            🔴
+                        </div>
+                        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-tight">Haut</span>
+                    </div>
                 </div>
             </div>
             <div class="bg-slate-50 p-4 border-t border-slate-100 flex justify-center">
@@ -298,7 +351,7 @@
         // Long Press & Scroll Vars
         let pressTimer;
         let isLongPressTriggered = false;
-        let isScrolling = false; // Neu für Scroll-Erkennung
+        let isScrolling = false; 
 
         const PHASES = {
             MENSTRUATION: { name: "Menstruation", desc: "Neuer Zyklus-Start. Ruhephasen einplanen.", color: "bg-gradient-to-r from-pink-500 to-rose-500 shadow-pink-500/40" },
@@ -372,15 +425,13 @@
         // --- INTERACTION LOGIC (Click vs Long Press vs Scroll) ---
         function startPress(dateKey) {
             isLongPressTriggered = false;
-            // Timer nur starten wenn wir nicht bereits wissen, dass gescrollt wird
             pressTimer = setTimeout(() => {
-                // Wenn zwischenzeitlich gescrollt wurde, ignorieren
                 if (!isScrolling) {
                     isLongPressTriggered = true;
                     if (navigator.vibrate) navigator.vibrate(50);
                     openDayModal(dateKey);
                 }
-            }, 500); // 500ms halten
+            }, 500); 
         }
 
         function cancelPress() {
@@ -389,13 +440,8 @@
 
         function handleRelease(dateKey) {
             clearTimeout(pressTimer);
-            
-            // Wenn gescrollt wurde, KEINE Aktion ausführen
-            if (isScrolling) {
-                return;
-            }
+            if (isScrolling) return;
 
-            // Wenn es kein Long Press war und nicht gescrollt wurde -> Klick
             if (!isLongPressTriggered) {
                 togglePeriodDirect(dateKey);
             }
@@ -422,7 +468,7 @@
         function closeDayModal() {
             document.getElementById('day-modal').classList.add('hidden');
             selectedDateKey = null;
-            renderCalendar(); // Updates indicators
+            renderCalendar(); 
         }
 
         function updateModalUI() {
@@ -441,17 +487,23 @@
             // 2. Symptom Buttons Update
             const daySym = symptomData[selectedDateKey] || { body: [] };
             
+            // Reset all styles
+            document.querySelectorAll('.symptom-btn').forEach(btn => btn.classList.remove('active'));
+            document.querySelectorAll('.symptom-wrapper').forEach(wrap => wrap.classList.remove('selected'));
+
+            // Apply active styles
             document.querySelectorAll('.symptom-btn').forEach(btn => {
                 const cat = btn.dataset.cat;
                 const val = btn.dataset.val;
-                
-                btn.classList.remove('active');
                 
                 if (cat === 'mood' && daySym.mood === val) {
                     btn.classList.add('active');
                 }
                 if (cat === 'body' && daySym.body && daySym.body.includes(val)) {
                     btn.classList.add('active');
+                    // Auch Text Label markieren
+                    const wrapper = btn.closest('.symptom-wrapper');
+                    if(wrapper) wrapper.classList.add('selected');
                 }
             });
         }
