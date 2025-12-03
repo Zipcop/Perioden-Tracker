@@ -3,7 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Nicos Zyklus-Tracker Pro</title>
+    <title>Zyklus-Tracker</title>
+    <!-- App Icon (Favicon) - Zuverlässige CDN Quelle (Twemoji) -->
+    <link rel="icon" href="https://cdnjs.cloudflare.com/ajax/libs/twemoji/14.0.2/72x72/1fa78.png" type="image/png">
+    <link rel="apple-touch-icon" href="https://cdnjs.cloudflare.com/ajax/libs/twemoji/14.0.2/72x72/1fa78.png">
+    
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
@@ -23,6 +27,8 @@
             /* Verhindert Textauswahl beim langen Drücken */
             -webkit-user-select: none;
             user-select: none;
+            /* Verhindert Pull-to-Refresh Verhalten bei manchen Browsern, was Scrollen stören könnte */
+            overscroll-behavior-y: none;
         }
 
         .glass-panel {
@@ -129,7 +135,9 @@
         <!-- Header -->
         <div class="relative bg-gradient-to-r from-pink-500 via-rose-500 to-orange-400 pt-8 pb-14 px-6 text-white text-center">
             <h1 class="text-3xl font-bold mb-1 tracking-tight flex items-center justify-center drop-shadow-sm">
-                <i class="fa-solid fa-heart-pulse mr-3 text-pink-100"></i>Zyklus Tracker
+                <!-- Kleines Icon im Header - Jetzt zuverlässige CDN Quelle -->
+                <img src="https://cdnjs.cloudflare.com/ajax/libs/twemoji/14.0.2/72x72/1fa78.png" alt="Icon" class="w-8 h-8 mr-2 drop-shadow-md">
+                Zyklus Tracker
             </h1>
             <p id="cycle-status" class="privacy-blur text-pink-50 font-semibold text-lg opacity-95 drop-shadow-sm transition-all duration-300">Lade Daten...</p>
             
@@ -287,9 +295,10 @@
         let isPrivacyMode = false;
         let selectedDateKey = null; // Für Modal
 
-        // Long Press Vars
+        // Long Press & Scroll Vars
         let pressTimer;
         let isLongPressTriggered = false;
+        let isScrolling = false; // Neu für Scroll-Erkennung
 
         const PHASES = {
             MENSTRUATION: { name: "Menstruation", desc: "Neuer Zyklus-Start. Ruhephasen einplanen.", color: "bg-gradient-to-r from-pink-500 to-rose-500 shadow-pink-500/40" },
@@ -360,15 +369,18 @@
             return `${y}-${m}-${d}`;
         }
 
-        // --- INTERACTION LOGIC (Click vs Long Press) ---
+        // --- INTERACTION LOGIC (Click vs Long Press vs Scroll) ---
         function startPress(dateKey) {
             isLongPressTriggered = false;
+            // Timer nur starten wenn wir nicht bereits wissen, dass gescrollt wird
             pressTimer = setTimeout(() => {
-                isLongPressTriggered = true;
-                // Vibrations-Feedback bei Long Press (Mobile)
-                if (navigator.vibrate) navigator.vibrate(50);
-                openDayModal(dateKey);
-            }, 500); // 500ms halten für Menü
+                // Wenn zwischenzeitlich gescrollt wurde, ignorieren
+                if (!isScrolling) {
+                    isLongPressTriggered = true;
+                    if (navigator.vibrate) navigator.vibrate(50);
+                    openDayModal(dateKey);
+                }
+            }, 500); // 500ms halten
         }
 
         function cancelPress() {
@@ -377,8 +389,14 @@
 
         function handleRelease(dateKey) {
             clearTimeout(pressTimer);
+            
+            // Wenn gescrollt wurde, KEINE Aktion ausführen
+            if (isScrolling) {
+                return;
+            }
+
+            // Wenn es kein Long Press war und nicht gescrollt wurde -> Klick
             if (!isLongPressTriggered) {
-                // Es war ein kurzer Klick -> Periode toggeln
                 togglePeriodDirect(dateKey);
             }
             isLongPressTriggered = false;
@@ -668,22 +686,29 @@
                 }
 
                 // Interaction: Mouse & Touch Event Listener für Long Press
-                // Mouse Events
+                
+                // MOUSE (Desktop)
                 cell.addEventListener('mousedown', () => startPress(dateKey));
                 cell.addEventListener('mouseup', () => handleRelease(dateKey));
                 cell.addEventListener('mouseleave', cancelPress);
                 
-                // Touch Events (wichtig für Mobile)
+                // TOUCH (Mobile)
                 cell.addEventListener('touchstart', (e) => {
-                    // Verhindert Scrolling während des Drückens (optional)
-                    // e.preventDefault(); 
+                    // Reset Scroll Flag bei jedem neuen Touch
+                    isScrolling = false;
                     startPress(dateKey);
                 });
+                
+                cell.addEventListener('touchmove', (e) => {
+                    // Wenn wir uns bewegen, ist es ein Scroll!
+                    isScrolling = true;
+                    cancelPress(); // Longpress abbrechen
+                });
+                
                 cell.addEventListener('touchend', (e) => {
-                    e.preventDefault(); // Verhindert Geister-Klicks
+                    e.preventDefault(); // Verhindert Geister-Klicks nach Touch
                     handleRelease(dateKey);
                 });
-                cell.addEventListener('touchmove', cancelPress);
                 
                 // Rechtsklick Menü deaktivieren
                 cell.oncontextmenu = (e) => { e.preventDefault(); e.stopPropagation(); return false; };
