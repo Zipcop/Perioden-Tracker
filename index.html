@@ -17,7 +17,7 @@
             --bg-gradient: linear-gradient(135deg, #fbcfe8 0%, #e11d48 100%);
             --header-gradient: linear-gradient(to right, #ec4899, #fb923c);
             --primary-color: #ec4899;
-            --text-primary: #be185d; /* Neu: Dunklere Version der Hauptfarbe für Text */
+            --text-primary: #be185d; 
             
             /* Automatische Mischung für helle Hintergründe: 85% Weiß + 15% Hauptfarbe */
             --primary-light: color-mix(in srgb, var(--primary-color), white 85%);
@@ -173,6 +173,10 @@
         }
         input[type="color"]::-webkit-color-swatch-wrapper { padding: 0; }
         input[type="color"]::-webkit-color-swatch { border: none; border-radius: 50%; border: 2px solid rgba(0,0,0,0.1); }
+        
+        /* Quote Animation */
+        .quote-anim { animation: fadeInQuote 1s ease-out; }
+        @keyframes fadeInQuote { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
     </style>
 </head>
 <body class="flex flex-col items-center py-6 px-4 md:py-10">
@@ -197,12 +201,12 @@
             <div class="custom-shape-divider-bottom"><svg data-name="Layer 1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 120" preserveAspectRatio="none"><path d="M321.39,56.44c58-10.79,114.16-30.13,172-41.86,82.39-16.72,168.19-17.73,250.45-.39C823.78,31,906.67,72,985.66,92.83c70.05,18.48,146.53,26.09,214.34,3V0H0V27.35A600.21,600.21,0,0,0,321.39,56.44Z" class="shape-fill"></path></svg></div>
         </div>
 
-        <!-- Info Box -->
-        <div id="phase-info-box" class="bg-white/60 mx-6 mt-4 p-4 rounded-2xl border border-white/50 flex items-start gap-3 hidden shadow-sm backdrop-blur-sm">
-            <div class="bg-white p-2 rounded-full text-slate-500 shadow-inner shrink-0" style="color: var(--text-primary)"><i class="fa-regular fa-lightbulb"></i></div>
+        <!-- Info Box (Updated with Tips) -->
+        <div id="phase-info-box" class="bg-white/60 mx-6 mt-4 p-4 rounded-2xl border border-white/50 flex items-start gap-3 hidden shadow-sm backdrop-blur-sm transition-all duration-500">
+            <div class="bg-white p-2.5 rounded-full text-slate-500 shadow-inner shrink-0 text-xl" style="color: var(--text-primary)"><i class="fa-solid fa-wand-magic-sparkles"></i></div>
             <div class="privacy-blur transition-all duration-300">
-                <h3 class="font-bold text-slate-700 text-sm mb-1" id="phase-title">Phasen-Info</h3>
-                <p class="text-xs text-slate-600 leading-relaxed font-medium" id="phase-desc">Beschreibung...</p>
+                <h3 class="font-bold text-slate-700 text-sm mb-1" id="phase-title">Tipps für dich</h3>
+                <p class="text-xs text-slate-600 leading-relaxed font-medium" id="phase-desc">Lade Tipps...</p>
             </div>
         </div>
 
@@ -269,11 +273,9 @@
         </p>
     </div>
 
-    <!-- FOOTER -->
-    <footer class="glass-panel px-6 py-3 rounded-full mb-8 fade-in flex items-center gap-3 shadow-lg">
-        <span class="text-xs font-bold opacity-70" style="color: var(--text-primary)">Zyklus Tracker</span>
-        <span class="w-1 h-1 rounded-full bg-slate-300"></span>
-        <span class="text-[10px] font-medium opacity-50" style="color: var(--text-primary)">© 2025</span>
+    <!-- FOOTER (Dynamic Quotes) -->
+    <footer class="glass-panel px-6 py-3 rounded-full mb-8 fade-in flex items-center justify-center gap-2 shadow-lg">
+        <span id="footer-quote" class="text-xs font-extrabold uppercase tracking-wider quote-anim" style="color: var(--text-primary)">YOU GO GIRL</span>
     </footer>
 
     <!-- MODAL: Tag Details -->
@@ -404,11 +406,29 @@
         };
 
         const PHASES = {
-            MENSTRUATION: { name: "Menstruation", desc: "Neuer Zyklus-Start. Ruhephasen einplanen.", color: "bg-gradient-to-r from-pink-500 to-rose-500 shadow-pink-500/40" },
-            FOLLICULAR: { name: "Follikelphase", desc: "Energie steigt, ideale Zeit für Projekte.", color: "bg-gradient-to-r from-pink-400 to-purple-400 shadow-purple-500/40" },
-            OVULATION: { name: "Eisprung", desc: "Fruchtbarkeits-Hoch. Hohe Energie.", color: "bg-gradient-to-r from-purple-500 to-indigo-500 shadow-indigo-500/40" },
-            LUTEAL: { name: "Lutealphase", desc: "Rückzug. PMS möglich. Sei gut zu dir.", color: "bg-gradient-to-r from-amber-400 to-orange-500 shadow-orange-500/40" }
+            MENSTRUATION: { 
+                name: "Menstruation", 
+                tips: "✨ Gönn dir Ruhe & Wärme. \n🥗 Iss Eisenreiches (Spinat, Fleisch) & Nüsse. \n🚫 Vermeide Koffein & Salziges.", 
+                color: "bg-gradient-to-r from-pink-500 to-rose-500 shadow-pink-500/40" 
+            },
+            FOLLICULAR: { 
+                name: "Follikelphase", 
+                tips: "⚡ Deine Energie steigt! Perfekt für neue Projekte & Sport. \n🥗 Iss frisches Gemüse, Proteine & fermentierte Foods.", 
+                color: "bg-gradient-to-r from-pink-400 to-purple-400 shadow-purple-500/40" 
+            },
+            OVULATION: { 
+                name: "Eisprung", 
+                tips: "🔥 Du bist in Höchstform! Power dich beim Sport aus. \n🥗 Iss Ballaststoffe & Antioxidantien (Beeren).", 
+                color: "bg-gradient-to-r from-purple-500 to-indigo-500 shadow-indigo-500/40" 
+            },
+            LUTEAL: { 
+                name: "Lutealphase", 
+                tips: "🌙 Zeit für Rückzug. Sei sanft zu dir. \n🥗 Komplexe Kohlenhydrate gegen Heißhunger. Magnesium hilft. \n💤 Priorisiere Schlaf.", 
+                color: "bg-gradient-to-r from-amber-400 to-orange-500 shadow-orange-500/40" 
+            }
         };
+
+        const QUOTES = ["YOU GO GIRL 💖", "SLAY 💅", "LOVE YOURSELF ✨", "BOSS BITCH 👑", "POWER WOMAN 💪", "TRUST YOUR FLOW 🌊", "SHINE BRIGHT 💎"];
 
         function init() { 
             loadData(); 
@@ -421,6 +441,11 @@
             } else {
                 applyTheme(DEFAULTS);
             }
+            
+            // Random Quote
+            const randomQuote = QUOTES[Math.floor(Math.random() * QUOTES.length)];
+            document.getElementById('footer-quote').textContent = randomQuote;
+
             renderCalendar(); 
             updateAnalysis(); 
         }
@@ -874,8 +899,10 @@
                     phaseBadge.style.boxShadow = "0 4px 14px rgba(0,0,0,0.2)"; 
                     
                     phaseBadge.classList.remove('hidden');
-                    document.getElementById('phase-title').textContent = phase.name;
-                    document.getElementById('phase-desc').textContent = phase.desc;
+                    // UPDATE: Show Tips instead of generic desc
+                    document.getElementById('phase-title').textContent = phase.name + " - Tipps";
+                    document.getElementById('phase-desc').innerHTML = phase.tips.replace(/\n/g, '<br>');
+                    
                     phaseBox.classList.remove('hidden');
                 }
             } else { statusEl.textContent = "Keine Daten"; }
