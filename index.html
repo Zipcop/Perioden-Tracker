@@ -19,10 +19,10 @@
             --primary-color: #ec4899;
             --text-primary: #be185d; 
             
-            /* Automatische Mischung für helle Hintergründe: 85% Weiß + 15% Hauptfarbe */
+            /* Automatische Mischung für helle Hintergründe */
             --primary-light: color-mix(in srgb, var(--primary-color), white 85%);
             --period-bg: #ff758c;
-            --ovulation-color: #a855f7; /* NEU: Variable für Eisprung */
+            --ovulation-color: #a855f7; 
             --text-accent: #be123c;
             --chart-color: #ec4899;
 
@@ -35,8 +35,6 @@
             --shape-fill: rgba(255, 255, 255, 0.92);
         }
 
-        /* Fix für weißen Hintergrund (Overscroll) */
-        /* Wir setzen den Hintergrund auf ein fixes Element statt auf body/html */
         html {
             height: 100%;
             width: 100%;
@@ -46,26 +44,23 @@
 
         body { 
             font-family: 'Quicksand', sans-serif; 
-            background: transparent; /* Wichtig: Body transparent lassen */
+            background: transparent; 
             min-height: 100vh;
             -webkit-user-select: none;
             user-select: none;
-            overscroll-behavior-y: none; /* Versucht Overscroll zu verhindern (Chrome/FF) */
+            overscroll-behavior-y: none;
             transition: color 0.5s ease;
             position: relative;
         }
 
-        /* NEU: Separater fester Hintergrund-Layer */
+        /* Fester Hintergrund-Layer */
         #app-background {
             position: fixed;
-            top: 0;
-            left: 0;
-            width: 100vw;
-            height: 100vh;
-            z-index: -50; /* Ganz hinten */
+            top: 0; left: 0; width: 100vw; height: 100vh;
+            z-index: -50;
             background: var(--bg-gradient);
             transition: background 0.5s ease;
-            pointer-events: none; /* Klicks gehen durch */
+            pointer-events: none;
         }
 
         /* Glassmorphism Logic */
@@ -95,7 +90,6 @@
             background-color: var(--day-bg); 
             box-shadow: var(--day-shadow);
             touch-action: manipulation; 
-            -webkit-tap-highlight-color: transparent;
         }
         
         .day-cell:active { transform: scale(0.95); }
@@ -223,7 +217,6 @@
 </head>
 <body class="flex flex-col items-center py-6 px-4 md:py-10">
 
-    <!-- NEU: Fester Hintergrund-Layer -->
     <div id="app-background"></div>
 
     <!-- MAIN CARD -->
@@ -246,9 +239,8 @@
             <div class="custom-shape-divider-bottom"><svg data-name="Layer 1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 120" preserveAspectRatio="none"><path d="M321.39,56.44c58-10.79,114.16-30.13,172-41.86,82.39-16.72,168.19-17.73,250.45-.39C823.78,31,906.67,72,985.66,92.83c70.05,18.48,146.53,26.09,214.34,3V0H0V27.35A600.21,600.21,0,0,0,321.39,56.44Z" class="shape-fill"></path></svg></div>
         </div>
 
-        <!-- Info Box (Updated with Tips) -->
+        <!-- Info Box -->
         <div id="phase-info-box" class="glass-panel mx-6 mt-4 p-4 rounded-2xl flex items-start gap-3 hidden shadow-sm transition-all duration-500">
-            <!-- FIX: Added dark:bg-slate-700 to ensure icon circle is dark in dark mode so the light icon shows up -->
             <div class="bg-white/90 dark:bg-slate-700 p-2.5 rounded-full shadow-inner shrink-0 text-xl" style="color: var(--text-primary)"><i class="fa-solid fa-wand-magic-sparkles"></i></div>
             <div class="privacy-blur transition-all duration-300">
                 <h3 class="font-bold text-sm mb-1" style="color: var(--text-primary)" id="phase-title">Tipps für dich</h3>
@@ -319,7 +311,7 @@
         </p>
     </div>
 
-    <!-- FOOTER (Dynamic Quotes) -->
+    <!-- FOOTER -->
     <footer class="glass-panel px-6 py-3 rounded-full mb-8 fade-in flex items-center justify-center gap-2 shadow-lg">
         <span id="footer-quote" class="text-xs font-extrabold uppercase tracking-wider quote-anim" style="color: var(--text-primary)">YOU GO GIRL</span>
     </footer>
@@ -371,7 +363,6 @@
 
     <!-- SETTINGS PANEL -->
     <div id="settings-panel" class="hidden fixed inset-0 z-50 bg-white/95 backdrop-blur-xl flex flex-col p-6 transition-all dark:bg-slate-900/95">
-        <!-- Top Bar with Done Button -->
         <div class="flex justify-between items-center mb-6 shrink-0">
             <h3 class="font-bold text-slate-700 text-xl dark:text-white">Einstellungen</h3>
             <button onclick="toggleSettings()" class="text-sm font-bold bg-slate-800 text-white px-6 py-2 rounded-xl hover:bg-slate-700 shadow-lg dark:bg-slate-600 dark:hover:bg-slate-500">Fertig</button>
@@ -395,7 +386,6 @@
                 </div>
 
                 <div class="space-y-3">
-                    <!-- Main Theme Color -->
                     <div class="color-picker-wrapper cursor-pointer dark:bg-slate-800 dark:border-slate-700" onclick="document.getElementById('input-main-color').click()">
                         <div class="flex-1">
                             <label class="block text-sm font-bold text-slate-700 dark:text-slate-200">Deine Lieblingsfarbe</label>
@@ -404,7 +394,6 @@
                         <input type="color" id="input-main-color" value="#ec4899" onchange="updateSmartTheme(this.value)">
                     </div>
 
-                    <!-- Period Color -->
                     <div class="color-picker-wrapper cursor-pointer dark:bg-slate-800 dark:border-slate-700" onclick="document.getElementById('input-period-color').click()">
                         <div class="flex-1">
                             <label class="block text-sm font-bold text-slate-700 dark:text-slate-200">Farbe für Periode</label>
@@ -413,7 +402,6 @@
                         <input type="color" id="input-period-color" value="#ff758c" onchange="updatePeriodColor(this.value)">
                     </div>
 
-                    <!-- Ovulation Color -->
                     <div class="color-picker-wrapper cursor-pointer dark:bg-slate-800 dark:border-slate-700" onclick="document.getElementById('input-ovulation-color').click()">
                         <div class="flex-1">
                             <label class="block text-sm font-bold text-slate-700 dark:text-slate-200">Farbe für Eisprung</label>
@@ -434,14 +422,30 @@
                 <p class="text-xs text-slate-400 mt-2">Wird genutzt, wenn die intelligente Analyse noch lernt.</p>
             </div>
             
-            <!-- Reset Button Zone (Moved to bottom of scroll) -->
+            <!-- NEU: Backup Section -->
+            <div class="border-t border-slate-100 pt-4 dark:border-slate-700">
+                <h4 class="font-bold text-slate-700 mb-3 dark:text-slate-300">Backup & Daten</h4>
+                <div class="grid grid-cols-2 gap-3">
+                    <button onclick="exportData()" class="flex flex-col items-center justify-center p-3 rounded-xl bg-slate-50 hover:bg-slate-100 border border-slate-200 dark:bg-slate-800 dark:border-slate-600 dark:hover:bg-slate-700 transition">
+                        <i class="fa-solid fa-download mb-2 text-slate-500"></i>
+                        <span class="text-xs font-bold text-slate-600 dark:text-slate-300">Exportieren</span>
+                    </button>
+                    <label class="flex flex-col items-center justify-center p-3 rounded-xl bg-slate-50 hover:bg-slate-100 border border-slate-200 dark:bg-slate-800 dark:border-slate-600 dark:hover:bg-slate-700 transition cursor-pointer">
+                        <i class="fa-solid fa-upload mb-2 text-slate-500"></i>
+                        <span class="text-xs font-bold text-slate-600 dark:text-slate-300">Importieren</span>
+                        <input type="file" id="import-file" class="hidden" accept=".json" onchange="importData(this)">
+                    </label>
+                </div>
+            </div>
+            
+            <!-- Reset Button Zone -->
             <div class="pt-8 mt-4 border-t border-slate-100 dark:border-slate-700">
                 <button onclick="confirmReset()" class="w-full text-sm font-bold text-red-500 hover:text-red-600 flex items-center justify-center bg-red-50 px-4 py-3 rounded-xl dark:bg-red-900/20 transition-colors"><i class="fa-solid fa-trash mr-2"></i>App zurücksetzen</button>
             </div>
         </div>
     </div>
 
-    <!-- CUSTOM CONFIRM MODAL (Better than browser alert) -->
+    <!-- CUSTOM CONFIRM MODAL -->
     <div id="confirm-modal" class="hidden fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm">
         <div class="bg-white rounded-2xl p-6 shadow-2xl max-w-sm w-full text-center dark:bg-slate-800">
             <h3 class="font-bold text-lg text-slate-800 mb-2 dark:text-white">Wirklich zurücksetzen?</h3>
@@ -457,7 +461,6 @@
         let currentDate = new Date();
         let periodData = {}; 
         let symptomData = {}; 
-        // settings now stores 'colors' object containing all derived values to ensure persistence
         let settings = { cycleLength: 28, customColors: null, baseColor: '#ec4899', periodColor: '#ff758c', ovulationColor: '#a855f7', darkMode: false };
         let isPrivacyMode = false;
         let selectedDateKey = null; 
@@ -465,7 +468,6 @@
         let isLongPressTriggered = false;
         let isScrolling = false; 
 
-        // Default colors structure
         const DEFAULTS = {
             bgStart: '#fbcfe8',
             bgEnd: '#e11d48',
@@ -507,23 +509,18 @@
         function init() { 
             loadData(); 
             
-            // Sync settings UI
             document.getElementById('dark-mode-toggle').checked = settings.darkMode || false;
             document.getElementById('input-main-color').value = settings.baseColor || '#ec4899';
             document.getElementById('input-period-color').value = settings.periodColor || '#ff758c';
             document.getElementById('input-ovulation-color').value = settings.ovulationColor || '#a855f7';
 
-            // If we have saved colors, apply them; otherwise update based on base color (handling dark mode)
             if (settings.customColors) {
-                // Ensure ovulation color is applied if old save
                 if(!settings.customColors.ovulation) settings.customColors.ovulation = settings.ovulationColor || DEFAULTS.ovulation;
-                // Ensure dark mode specific values are updated if mode changed
                 updateSmartTheme(settings.baseColor || DEFAULTS.primary);
             } else {
                 updateSmartTheme(DEFAULTS.primary);
             }
             
-            // Random Quote
             const randomQuote = QUOTES[Math.floor(Math.random() * QUOTES.length)];
             document.getElementById('footer-quote').textContent = randomQuote;
 
@@ -557,8 +554,51 @@
                 console.warn("Storage not available");
             }
         }
+        
+        // --- NEW: EXPORT / IMPORT ---
+        function exportData() {
+            const data = {
+                periodData,
+                symptomData,
+                settings,
+                exportDate: new Date().toISOString(),
+                appVersion: "1.1"
+            };
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(data));
+            const downloadAnchorNode = document.createElement('a');
+            downloadAnchorNode.setAttribute("href", dataStr);
+            downloadAnchorNode.setAttribute("download", "zyklus_backup_" + formatDateKey(new Date()) + ".json");
+            document.body.appendChild(downloadAnchorNode);
+            downloadAnchorNode.click();
+            downloadAnchorNode.remove();
+        }
 
-        // --- HELPER FOR SMART THEME GENERATION ---
+        function importData(input) {
+            const file = input.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const imported = JSON.parse(e.target.result);
+                    if (imported.periodData && imported.settings) {
+                        periodData = imported.periodData;
+                        symptomData = imported.symptomData || {};
+                        settings = imported.settings;
+                        saveData();
+                        init();
+                        alert("Daten erfolgreich importiert!");
+                    } else {
+                        alert("Ungültiges Dateiformat.");
+                    }
+                } catch (error) {
+                    alert("Fehler beim Lesen der Datei.");
+                }
+            };
+            reader.readAsText(file);
+        }
+        // ----------------------------
+
         function hexToHSL(H) {
             let r = 0, g = 0, b = 0;
             if (H.length == 4) {
@@ -613,44 +653,30 @@
             const hsl = hexToHSL(baseHex);
             const isDark = settings.darkMode;
             
-            // --- Logic for Light Mode vs Dark Mode ---
-            
-            // Background & Elements
             let bgStart, bgEnd, headerStart, headerEnd, textPrimary, accent, dayBg, dayText, glassBg, glassBorder, shapeFill;
 
             if (isDark) {
-                // Dark Mode Palette
-                bgStart = hslToHex(hsl.h, 40, 10); // Very Dark
-                bgEnd = hslToHex(hsl.h, 50, 20);   // Dark
-                
-                // Darken Header for Dark Mode: reduce lightness significantly to around 25-30%
+                bgStart = hslToHex(hsl.h, 40, 10); 
+                bgEnd = hslToHex(hsl.h, 50, 20);   
                 headerStart = hslToHex(hsl.h, hsl.s, 30);
                 headerEnd = hslToHex((hsl.h + 30) % 360, hsl.s, 25);
-
-                textPrimary = "#e2e8f0"; // Almost white
-                accent = hslToHex(hsl.h, 80, 70); // Light accent for contrast
-                
-                dayBg = "rgba(30, 41, 59, 0.8)"; // Slate-800ish transparent
+                textPrimary = "#e2e8f0"; 
+                accent = hslToHex(hsl.h, 80, 70); 
+                dayBg = "rgba(30, 41, 59, 0.8)"; 
                 dayText = "#e2e8f0";
-                
-                glassBg = "rgba(15, 23, 42, 0.85)"; // Slate-900ish
+                glassBg = "rgba(15, 23, 42, 0.85)"; 
                 glassBorder = "rgba(255, 255, 255, 0.1)";
                 shapeFill = "rgba(15, 23, 42, 0.85)";
             } else {
-                // Light Mode Palette (Default)
                 headerStart = baseHex;
                 headerEnd = hslToHex((hsl.h + 30) % 360, hsl.s, hsl.l);
-
                 bgStart = hslToHex(hsl.h, 70, 95); 
                 bgEnd = hslToHex(hsl.h, 80, 50); 
-                
                 const textL = Math.min(hsl.l, 40); 
                 accent = hslToHex(hsl.h, 80, textL);
                 textPrimary = hslToHex(hsl.h, 90, 35); 
-                
                 dayBg = "rgba(255,255,255,0.75)";
                 dayText = "#334155";
-                
                 glassBg = "rgba(255, 255, 255, 0.92)";
                 glassBorder = "rgba(255, 255, 255, 0.6)";
                 shapeFill = "rgba(255, 255, 255, 0.92)";
@@ -694,24 +720,19 @@
             root.style.setProperty('--primary-color', colors.primary);
             root.style.setProperty('--text-primary', colors.textPrimary || colors.accent); 
             root.style.setProperty('--period-bg', colors.period);
-            root.style.setProperty('--ovulation-color', colors.ovulation); // NEU
+            root.style.setProperty('--ovulation-color', colors.ovulation); 
             root.style.setProperty('--text-accent', colors.accent);
             root.style.setProperty('--chart-color', colors.primary);
             
-            // Dark Mode Specifics
             root.style.setProperty('--glass-bg', colors.glassBg);
             root.style.setProperty('--glass-border', colors.glassBorder);
             root.style.setProperty('--day-bg', colors.dayBg);
             root.style.setProperty('--day-text', colors.dayText);
             root.style.setProperty('--shape-fill', colors.shapeFill);
             
-            // Adjust modal class for dark mode text
             const isDark = settings.darkMode;
-            if(isDark) {
-                document.documentElement.classList.add('dark');
-            } else {
-                document.documentElement.classList.remove('dark');
-            }
+            if(isDark) document.documentElement.classList.add('dark');
+            else document.documentElement.classList.remove('dark');
 
             renderCalendar();
             renderChart(getCycleStats().cycles);
@@ -733,7 +754,6 @@
             saveData();
         }
 
-        // --- Custom Confirm Modal Logic ---
         function confirmReset() {
             document.getElementById('confirm-modal').classList.remove('hidden');
         }
@@ -749,7 +769,6 @@
             init(); toggleSettings();
             closeConfirmModal();
         }
-        // ----------------------------------
 
         function toggleSettings() { document.getElementById('settings-panel').classList.toggle('hidden'); }
         
@@ -861,7 +880,6 @@
             saveData(); updateModalUI();
         }
 
-        // --- INTELLIGENTE STATISTIK 3.0 (Update: Ausreißer-Schutz) ---
         function getCycleStats() {
             const keys = Object.keys(periodData).sort();
             if (keys.length === 0) return { lastStart: null, predictedLength: 0, medianDuration: 0, cycles: [], variability: 0, method: 'none' };
@@ -892,21 +910,16 @@
                 }
             });
 
-            // --- ROBUSTE VORHERSAGE LOGIK ---
-            let predictedLen = 28; // Fallback
+            let predictedLen = 28; 
             let method = "average";
             let variability = 0;
 
             if (rawLengths.length > 0) {
-                // 1. Berechne den Median aller Daten (sehr stabil gegen Ausreißer)
                 const sortedRaw = [...rawLengths].sort((a,b) => a-b);
                 const globalMedian = sortedRaw[Math.floor(sortedRaw.length / 2)];
-
-                // 2. Prüfe, ob der LETZTE Zyklus stark vom Median abweicht (> 3 Tage)
                 const lastCycle = rawLengths[rawLengths.length - 1];
                 const isRecentOutlier = Math.abs(lastCycle - globalMedian) > 3;
 
-                // 3. Variabilität berechnen (Standardabweichung)
                 if (rawLengths.length >= 2) {
                     const mean = rawLengths.reduce((a,b)=>a+b,0)/rawLengths.length;
                     const variance = rawLengths.reduce((a,b) => a + Math.pow(b-mean, 2), 0) / rawLengths.length;
@@ -914,20 +927,16 @@
                 }
 
                 if (rawLengths.length < 3) {
-                    // Wenig Daten: Nimm Durchschnitt
                     predictedLen = Math.round(rawLengths.reduce((a,b)=>a+b,0)/rawLengths.length);
                 } else {
                     if (isRecentOutlier) {
-                        // Strategie A: Einmaliger Ausreißer erkannt -> Ignorieren, nutze Median
                         predictedLen = globalMedian;
                         method = "median (stabilisiert)";
                     } else if (variability < 2) {
-                        // Strategie B: Sehr stabil -> Nutze Trend (gewichtet)
                         const recent = rawLengths.slice(-3);
                         predictedLen = Math.round((recent[2]*0.5) + (recent[1]*0.3) + (recent[0]*0.2));
                         method = "trend";
                     } else {
-                        // Strategie C: Unruhig -> Nutze Median (sicherer)
                         predictedLen = globalMedian;
                         method = "median";
                     }
@@ -982,17 +991,14 @@
                 const cycleDay = Math.floor(diffTime / (1000 * 60 * 60 * 24)) + 1;
                 const daysUntil = usedLen - cycleDay + 1;
 
-                // --- NEU: Toleranz-Berechnung ---
                 let buffer = 1;
                 if (stats.variability > 2) buffer = 2;
                 if (stats.variability > 4) buffer = 4;
                 const bufferText = stats.variability > 0 ? ` (±${buffer})` : "";
 
-                // Berechne voraussichtliches Start-Datum
                 const nextPeriodDate = new Date(lastStartDate);
                 nextPeriodDate.setDate(nextPeriodDate.getDate() + usedLen);
                 
-                // Berechne Fenster
                 const rangeStart = new Date(nextPeriodDate);
                 rangeStart.setDate(rangeStart.getDate() - buffer);
                 const rangeEnd = new Date(nextPeriodDate);
@@ -1026,7 +1032,6 @@
                              statusEl.textContent = `Tag ${cycleDay} der Periode`;
                         }
                     } else {
-                        // Erweiterte Anzeige mit Vorhersage-Fenster
                         if (daysUntil > 0) {
                              statusEl.innerHTML = `<span class="text-2xl font-bold block">Noch ${daysUntil} Tage</span><span class="text-sm font-medium opacity-80 block mt-1">Erwartet: ${rangeString}</span>`;
                         } else {
@@ -1035,14 +1040,11 @@
                     }
 
                     phaseBadge.textContent = `${phase.name} (T.${cycleDay})`;
-                    // Use CSS Variable for Phase Badge background based on phase
                     let badgeClass = "privacy-blur inline-block mt-3 backdrop-blur-md border border-white/30 rounded-full px-5 py-1.5 text-sm font-bold text-white shadow-lg ";
-                    // We keep phase colors static as they have semantic meaning, but could be themed later if desired.
                     phaseBadge.className = badgeClass + phase.color.replace('shadow-pink-500/40', '').replace('shadow-purple-500/40', '').replace('shadow-indigo-500/40', '').replace('shadow-orange-500/40', '');
                     phaseBadge.style.boxShadow = "0 4px 14px rgba(0,0,0,0.2)"; 
                     
                     phaseBadge.classList.remove('hidden');
-                    // UPDATE: Show Tips instead of generic desc
                     document.getElementById('phase-title').textContent = phase.name + " - Tipps";
                     document.getElementById('phase-desc').innerHTML = phase.tips.replace(/\n/g, '<br>');
                     
@@ -1068,8 +1070,6 @@
                  lenFeedback.className = "text-[10px] font-bold mt-1 text-orange-600 bg-orange-50/90 inline-block px-2 py-0.5 rounded-lg border border-orange-100";
             } else {
                  const methodText = stats.method === 'median' ? ' (Median)' : ' (Trend)';
-                 
-                 // Feedback anpassen, falls Abweichung erkannt wurde
                  if (stats.method.includes("stabilisiert")) {
                      lenFeedback.textContent = "Abweichung ignoriert";
                      lenFeedback.className = "text-[10px] font-bold mt-1 text-blue-600 bg-blue-50/80 inline-block px-2 py-0.5 rounded-lg";
