@@ -126,11 +126,28 @@
             background-color: var(--day-bg) !important;
             border: 2.5px solid var(--text-accent);
         }
+        
+        /* FIX: Spezifischer Style für Heute + Periode */
+        /* Damit wird der weiße Hintergrund von .is-today überschrieben */
+        .is-period.is-today {
+            background: var(--period-bg) !important;
+            color: white !important;
+            border-color: white !important; /* Weißer Rand für besseren Kontrast zur Farbe */
+            box-shadow: 0 0 15px rgba(0,0,0,0.15);
+        }
+
         .is-today::after {
             content: ''; position: absolute; top: -5px; left: -5px; right: -5px; bottom: -5px;
             border-radius: 50%; border: 2px solid var(--text-accent);
             animation: pulse-ring 2s cubic-bezier(0.215, 0.61, 0.355, 1) infinite;
         }
+
+        /* FIX: Pulse Ring Farbe anpassen wenn Periode heute ist */
+        .is-period.is-today::after {
+            border-color: white !important;
+            opacity: 0.5;
+        }
+
         @keyframes pulse-ring {
             0% { transform: scale(0.8); opacity: 0; }
             50% { opacity: 0.5; }
