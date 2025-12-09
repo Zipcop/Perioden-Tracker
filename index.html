@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="de">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
@@ -8,30 +9,30 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- FontAwesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
+
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Quicksand:wght@500;600;700;800&display=swap');
-        
+
         :root {
             /* Standard Werte - werden durch JS bei Start überschrieben */
             --bg-gradient: linear-gradient(135deg, #fbcfe8 0%, #e11d48 100%);
             --header-gradient: linear-gradient(to right, #ec4899, #fb923c);
             --primary-color: #ec4899;
-            --text-primary: #be185d; 
-            
+            --text-primary: #be185d;
+
             /* Automatische Mischung für helle Hintergründe */
             --primary-light: color-mix(in srgb, var(--primary-color), white 85%);
             --period-bg: #ff758c;
-            --ovulation-color: #a855f7; 
+            --ovulation-color: #a855f7;
             --text-accent: #be123c;
             --chart-color: #ec4899;
 
             /* Design Variablen für Dark/Light Mode */
             --glass-bg: rgba(255, 255, 255, 0.92);
             --glass-border: rgba(255, 255, 255, 0.6);
-            --day-bg: rgba(255,255,255,0.75);
+            --day-bg: rgba(255, 255, 255, 0.75);
             --day-text: #334155;
-            --day-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            --day-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
             --shape-fill: rgba(255, 255, 255, 0.92);
         }
 
@@ -42,9 +43,9 @@
             -webkit-tap-highlight-color: transparent;
         }
 
-        body { 
-            font-family: 'Quicksand', sans-serif; 
-            background: transparent; 
+        body {
+            font-family: 'Quicksand', sans-serif;
+            background: transparent;
             min-height: 100vh;
             -webkit-user-select: none;
             user-select: none;
@@ -56,7 +57,10 @@
         /* Fester Hintergrund-Layer */
         #app-background {
             position: fixed;
-            top: 0; left: 0; width: 100vw; height: 100vh;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
             z-index: -50;
             background: var(--bg-gradient);
             transition: background 0.5s ease;
@@ -65,7 +69,7 @@
 
         /* Glassmorphism Logic */
         .glass-panel {
-            background: var(--glass-bg); 
+            background: var(--glass-bg);
             backdrop-filter: blur(12px);
             -webkit-backdrop-filter: blur(12px);
             border: 1px solid var(--glass-border);
@@ -78,67 +82,90 @@
         }
 
         /* Calendar Grid Logic */
-        .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 0.5rem; }
-        
-        .day-cell {
-            aspect-ratio: 1; display: flex; flex-direction: column; align-items: center; justify-content: center;
-            border-radius: 50%;
-            cursor: pointer; transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); 
-            font-size: 0.95rem; position: relative;
-            font-weight: 700; 
-            color: var(--day-text); 
-            background-color: var(--day-bg); 
-            box-shadow: var(--day-shadow);
-            touch-action: manipulation; 
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 0.5rem;
         }
-        
-        .day-cell:active { transform: scale(0.95); }
 
-        .day-cell:hover:not(.empty) { 
+        .day-cell {
+            aspect-ratio: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            font-size: 0.95rem;
+            position: relative;
+            font-weight: 700;
+            color: var(--day-text);
+            background-color: var(--day-bg);
+            box-shadow: var(--day-shadow);
+            touch-action: manipulation;
+        }
+
+        .day-cell:active {
+            transform: scale(0.95);
+        }
+
+        .day-cell:hover:not(.empty) {
             background-color: var(--glass-bg);
             filter: brightness(1.1);
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1); z-index: 10;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            z-index: 10;
         }
-        
+
         /* Status Classes */
-        .is-period { 
-            background: var(--period-bg) !important; color: white !important; 
-            box-shadow: 0 4px 10px rgba(0,0,0, 0.15);
-            text-shadow: 0 1px 2px rgba(0,0,0,0.1);
+        .is-period {
+            background: var(--period-bg) !important;
+            color: white !important;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
         }
-        
-        .is-predicted { 
-            background-color: var(--day-bg) !important; color: var(--text-accent) !important;
+
+        .is-predicted {
+            background-color: var(--day-bg) !important;
+            color: var(--text-accent) !important;
             border: 2px dashed var(--primary-color);
-            opacity: 1; 
+            opacity: 1;
         }
-        
-        .is-ovulation { 
-            border: 2px solid var(--ovulation-color); 
+
+        .is-ovulation {
+            border: 2px solid var(--ovulation-color);
             box-shadow: 0 0 10px color-mix(in srgb, var(--ovulation-color), transparent 70%);
             background-color: var(--day-bg);
             color: var(--ovulation-color);
-        } 
-        
-        .is-today { 
-            color: var(--text-accent); font-weight: 900;
+        }
+
+        .is-today {
+            color: var(--text-accent);
+            font-weight: 900;
             position: relative;
             background-color: var(--day-bg) !important;
             border: 2.5px solid var(--text-accent);
         }
-        
+
         /* FIX: Spezifischer Style für Heute + Periode */
         /* Damit wird der weiße Hintergrund von .is-today überschrieben */
         .is-period.is-today {
             background: var(--period-bg) !important;
             color: white !important;
-            border-color: white !important; /* Weißer Rand für besseren Kontrast zur Farbe */
-            box-shadow: 0 0 15px rgba(0,0,0,0.15);
+            border-color: white !important;
+            /* Weißer Rand für besseren Kontrast zur Farbe */
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.15);
         }
 
         .is-today::after {
-            content: ''; position: absolute; top: -5px; left: -5px; right: -5px; bottom: -5px;
-            border-radius: 50%; border: 2px solid var(--text-accent);
+            content: '';
+            position: absolute;
+            top: -5px;
+            left: -5px;
+            right: -5px;
+            bottom: -5px;
+            border-radius: 50%;
+            border: 2px solid var(--text-accent);
             animation: pulse-ring 2s cubic-bezier(0.215, 0.61, 0.355, 1) infinite;
         }
 
@@ -149,53 +176,136 @@
         }
 
         @keyframes pulse-ring {
-            0% { transform: scale(0.8); opacity: 0; }
-            50% { opacity: 0.5; }
-            100% { transform: scale(1.4); opacity: 0; }
+            0% {
+                transform: scale(0.8);
+                opacity: 0;
+            }
+
+            50% {
+                opacity: 0.5;
+            }
+
+            100% {
+                transform: scale(1.4);
+                opacity: 0;
+            }
         }
 
         .has-symptoms::before {
-            content: ''; position: absolute; bottom: 4px; width: 5px; height: 5px;
-            background-color: var(--primary-color); border-radius: 50%; 
+            content: '';
+            position: absolute;
+            bottom: 4px;
+            width: 5px;
+            height: 5px;
+            background-color: var(--primary-color);
+            border-radius: 50%;
         }
-        .is-period.has-symptoms::before { background-color: white; border: none; }
 
-        .empty { cursor: default; visibility: hidden; pointer-events: none; }
-        .fade-in { animation: fadeIn 0.8s cubic-bezier(0.4, 0, 0.2, 1); }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
+        .is-period.has-symptoms::before {
+            background-color: white;
+            border: none;
+        }
+
+        .empty {
+            cursor: default;
+            visibility: hidden;
+            pointer-events: none;
+        }
+
+        .fade-in {
+            animation: fadeIn 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
 
         /* Privacy Mode */
         body.privacy-mode .privacy-blur {
-            filter: blur(6px); user-select: none;
+            filter: blur(6px);
+            user-select: none;
         }
 
         /* SVG Chart Styles */
-        .chart-line { fill: none; stroke: var(--chart-color); stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; }
-        .chart-dot { fill: var(--day-bg); stroke: var(--chart-color); stroke-width: 2; }
-        .chart-grid { stroke: var(--glass-border); stroke-width: 1; stroke-dasharray: 4; }
+        .chart-line {
+            fill: none;
+            stroke: var(--chart-color);
+            stroke-width: 3;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+        }
+
+        .chart-dot {
+            fill: var(--day-bg);
+            stroke: var(--chart-color);
+            stroke-width: 2;
+        }
+
+        .chart-grid {
+            stroke: var(--glass-border);
+            stroke-width: 1;
+            stroke-dasharray: 4;
+        }
 
         /* Header Wave Shape */
         .custom-shape-divider-bottom {
-            position: absolute; bottom: 0; left: 0; width: 100%; overflow: hidden; line-height: 0; transform: rotate(180deg);
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            overflow: hidden;
+            line-height: 0;
+            transform: rotate(180deg);
         }
+
         .custom-shape-divider-bottom svg {
-            position: relative; display: block; width: calc(136% + 1.3px); height: 50px;
+            position: relative;
+            display: block;
+            width: calc(136% + 1.3px);
+            height: 50px;
         }
-        .custom-shape-divider-bottom .shape-fill { fill: var(--shape-fill); transition: fill 0.5s ease; }
+
+        .custom-shape-divider-bottom .shape-fill {
+            fill: var(--shape-fill);
+            transition: fill 0.5s ease;
+        }
 
         /* Symptom Buttons */
-        .symptom-btn { 
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); opacity: 1; transform: scale(1);
-            background-color: var(--day-bg); border-color: var(--glass-border); color: var(--day-text);
+        .symptom-btn {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            opacity: 1;
+            transform: scale(1);
+            background-color: var(--day-bg);
+            border-color: var(--glass-border);
+            color: var(--day-text);
         }
-        .symptom-wrapper:hover .symptom-btn { border-color: var(--primary-color); }
-        .symptom-btn.active { 
-            opacity: 1; transform: scale(1.1); border-color: var(--primary-color) !important;
-            background-color: color-mix(in srgb, var(--primary-color), transparent 85%) !important; color: var(--text-accent);
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+
+        .symptom-wrapper:hover .symptom-btn {
+            border-color: var(--primary-color);
         }
-        .symptom-wrapper.selected span { color: var(--text-accent); font-weight: 800; }
-        
+
+        .symptom-btn.active {
+            opacity: 1;
+            transform: scale(1.1);
+            border-color: var(--primary-color) !important;
+            background-color: color-mix(in srgb, var(--primary-color), transparent 85%) !important;
+            color: var(--text-accent);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .symptom-wrapper.selected span {
+            color: var(--text-accent);
+            font-weight: 800;
+        }
+
         /* Color Inputs */
         .color-picker-wrapper {
             position: relative;
@@ -207,122 +317,200 @@
             padding: 0.75rem;
             transition: all 0.2s;
         }
+
         .color-picker-wrapper:hover {
             border-color: var(--primary-color);
         }
+
         input[type="color"] {
-            -webkit-appearance: none; border: none; padding: 0; overflow: hidden;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-            width: 40px; height: 40px; border-radius: 50%; cursor: pointer; flex-shrink: 0;
+            -webkit-appearance: none;
+            border: none;
+            padding: 0;
+            overflow: hidden;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            cursor: pointer;
+            flex-shrink: 0;
         }
-        input[type="color"]::-webkit-color-swatch-wrapper { padding: 0; }
-        input[type="color"]::-webkit-color-swatch { border: none; border-radius: 50%; border: 2px solid rgba(0,0,0,0.1); }
-        
+
+        input[type="color"]::-webkit-color-swatch-wrapper {
+            padding: 0;
+        }
+
+        input[type="color"]::-webkit-color-swatch {
+            border: none;
+            border-radius: 50%;
+            border: 2px solid rgba(0, 0, 0, 0.1);
+        }
+
         /* Toggle Switch */
         .toggle-checkbox:checked {
             right: 0;
             border-color: var(--primary-color);
         }
-        .toggle-checkbox:checked + .toggle-label {
+
+        .toggle-checkbox:checked+.toggle-label {
             background-color: var(--primary-color);
         }
-        
+
         /* Quote Animation */
-        .quote-anim { animation: fadeInQuote 1s ease-out; }
-        @keyframes fadeInQuote { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+        .quote-anim {
+            animation: fadeInQuote 1s ease-out;
+        }
+
+        @keyframes fadeInQuote {
+            from {
+                opacity: 0;
+                transform: translateY(5px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
     </style>
 </head>
+
 <body class="flex flex-col items-center py-6 px-4 md:py-10">
 
     <div id="app-background"></div>
 
     <!-- MAIN CARD -->
-    <div class="glass-panel w-full max-w-[500px] rounded-[2.5rem] shadow-2xl shadow-black/10 overflow-hidden fade-in mb-8 relative">
+    <div
+        class="glass-panel w-full max-w-[500px] rounded-[2.5rem] shadow-2xl shadow-black/10 overflow-hidden fade-in mb-8 relative">
         <div class="relative header-bg pt-16 pb-14 px-6 text-white text-center">
-            <h1 class="text-2xl md:text-3xl font-bold mb-1 tracking-tight flex items-center justify-center drop-shadow-sm">
+            <h1
+                class="text-2xl md:text-3xl font-bold mb-1 tracking-tight flex items-center justify-center drop-shadow-sm">
                 <span class="mr-2 text-3xl">🩸</span>
                 Zyklus Tracker
             </h1>
-            <div id="cycle-status" class="privacy-blur text-white/90 font-semibold text-lg drop-shadow-sm transition-all duration-300 min-h-[3rem] flex flex-col justify-center items-center">
+            <div id="cycle-status"
+                class="privacy-blur text-white/90 font-semibold text-lg drop-shadow-sm transition-all duration-300 min-h-[3rem] flex flex-col justify-center items-center">
                 <p>Lade Daten...</p>
             </div>
-            <div id="phase-badge" class="privacy-blur inline-block mt-3 bg-white/20 backdrop-blur-md border border-white/40 rounded-full px-5 py-1.5 text-sm font-bold text-white shadow-lg hidden">Phase</div>
-            
+            <div id="phase-badge"
+                class="privacy-blur inline-block mt-3 bg-white/20 backdrop-blur-md border border-white/40 rounded-full px-5 py-1.5 text-sm font-bold text-white shadow-lg hidden">
+                Phase</div>
+
             <div class="absolute top-4 right-4 flex gap-2">
-                <button onclick="togglePrivacy()" id="privacy-btn" class="bg-white/10 hover:bg-white/30 rounded-full p-2 w-10 h-10 transition backdrop-blur-sm flex items-center justify-center"><i class="fa-regular fa-eye text-white"></i></button>
-                <button onclick="toggleSettings()" class="bg-white/10 hover:bg-white/30 rounded-full p-2 w-10 h-10 transition backdrop-blur-sm flex items-center justify-center"><i class="fa-solid fa-gear text-white"></i></button>
+                <button onclick="togglePrivacy()" id="privacy-btn"
+                    class="bg-white/10 hover:bg-white/30 rounded-full p-2 w-10 h-10 transition backdrop-blur-sm flex items-center justify-center"><i
+                        class="fa-regular fa-eye text-white"></i></button>
+                <button onclick="toggleSettings()"
+                    class="bg-white/10 hover:bg-white/30 rounded-full p-2 w-10 h-10 transition backdrop-blur-sm flex items-center justify-center"><i
+                        class="fa-solid fa-gear text-white"></i></button>
             </div>
-            
-            <div class="custom-shape-divider-bottom"><svg data-name="Layer 1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 120" preserveAspectRatio="none"><path d="M321.39,56.44c58-10.79,114.16-30.13,172-41.86,82.39-16.72,168.19-17.73,250.45-.39C823.78,31,906.67,72,985.66,92.83c70.05,18.48,146.53,26.09,214.34,3V0H0V27.35A600.21,600.21,0,0,0,321.39,56.44Z" class="shape-fill"></path></svg></div>
+
+            <div class="custom-shape-divider-bottom"><svg data-name="Layer 1" xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 1200 120" preserveAspectRatio="none">
+                    <path
+                        d="M321.39,56.44c58-10.79,114.16-30.13,172-41.86,82.39-16.72,168.19-17.73,250.45-.39C823.78,31,906.67,72,985.66,92.83c70.05,18.48,146.53,26.09,214.34,3V0H0V27.35A600.21,600.21,0,0,0,321.39,56.44Z"
+                        class="shape-fill"></path>
+                </svg></div>
         </div>
 
         <!-- Info Box -->
-        <div id="phase-info-box" class="glass-panel mx-6 mt-4 p-4 rounded-2xl flex items-start gap-3 hidden shadow-sm transition-all duration-500">
-            <div class="bg-white/90 dark:bg-slate-700 p-2.5 rounded-full shadow-inner shrink-0 text-xl" style="color: var(--text-primary)"><i class="fa-solid fa-wand-magic-sparkles"></i></div>
+        <div id="phase-info-box"
+            class="glass-panel mx-6 mt-4 p-4 rounded-2xl flex items-start gap-3 hidden shadow-sm transition-all duration-500">
+            <div class="bg-white/90 dark:bg-slate-700 p-2.5 rounded-full shadow-inner shrink-0 text-xl"
+                style="color: var(--text-primary)"><i class="fa-solid fa-wand-magic-sparkles"></i></div>
             <div class="privacy-blur transition-all duration-300">
-                <h3 class="font-bold text-sm mb-1" style="color: var(--text-primary)" id="phase-title">Tipps für dich</h3>
-                <p class="text-xs leading-relaxed font-medium" style="color: var(--day-text)" id="phase-desc">Lade Tipps...</p>
+                <h3 class="font-bold text-sm mb-1" style="color: var(--text-primary)" id="phase-title">Tipps für dich
+                </h3>
+                <p class="text-xs leading-relaxed font-medium" style="color: var(--day-text)" id="phase-desc">Lade
+                    Tipps...</p>
             </div>
         </div>
 
         <!-- Calendar Navigation -->
         <div class="flex justify-between items-center px-6 py-4 mt-2">
-            <button onclick="changeMonth(-1)" class="w-10 h-10 flex items-center justify-center bg-white/50 shadow-sm rounded-full hover:bg-white transition" style="color: var(--day-text)"><i class="fa-solid fa-chevron-left"></i></button>
-            <h2 id="current-month-display" class="text-xl font-extrabold capitalize tracking-tight" style="color: var(--day-text)"></h2>
-            <button onclick="changeMonth(1)" class="w-10 h-10 flex items-center justify-center bg-white/50 shadow-sm rounded-full hover:bg-white transition" style="color: var(--day-text)"><i class="fa-solid fa-chevron-right"></i></button>
+            <button onclick="changeMonth(-1)"
+                class="w-10 h-10 flex items-center justify-center bg-white/50 shadow-sm rounded-full hover:bg-white transition"
+                style="color: var(--day-text)"><i class="fa-solid fa-chevron-left"></i></button>
+            <h2 id="current-month-display" class="text-xl font-extrabold capitalize tracking-tight"
+                style="color: var(--day-text)"></h2>
+            <button onclick="changeMonth(1)"
+                class="w-10 h-10 flex items-center justify-center bg-white/50 shadow-sm rounded-full hover:bg-white transition"
+                style="color: var(--day-text)"><i class="fa-solid fa-chevron-right"></i></button>
         </div>
 
         <!-- Calendar Grid -->
-        <div class="grid grid-cols-7 gap-2 px-6 mb-3 text-center text-xs font-extrabold uppercase tracking-widest" style="color: var(--text-primary)">
-            <div>Mo</div><div>Di</div><div>Mi</div><div>Do</div><div>Fr</div><div>Sa</div><div>So</div>
+        <div class="grid grid-cols-7 gap-2 px-6 mb-3 text-center text-xs font-extrabold uppercase tracking-widest"
+            style="color: var(--text-primary)">
+            <div>Mo</div>
+            <div>Di</div>
+            <div>Mi</div>
+            <div>Do</div>
+            <div>Fr</div>
+            <div>Sa</div>
+            <div>So</div>
         </div>
         <div id="calendar-grid" class="calendar-grid px-6 pb-8"></div>
-        
+
         <!-- Legend -->
-        <div class="flex justify-center flex-wrap gap-x-6 gap-y-2 pb-6 text-xs font-bold border-t pt-6 mx-6" style="color: var(--day-text); border-color: var(--glass-border)">
-            <div class="flex items-center gap-2"><span class="w-3 h-3 rounded-full block shadow-sm" style="background: var(--period-bg)"></span> Periode</div>
-            <div class="flex items-center gap-2"><span class="w-3 h-3 rounded-full block border-2 border-dashed" style="border-color: var(--primary-color); background: var(--day-bg)"></span> Prognose</div>
-            <div class="flex items-center gap-2"><span class="w-3 h-3 rounded-full border-2 block shadow-sm" style="border-color: var(--ovulation-color); background: var(--day-bg)"></span> Eisprung</div>
+        <div class="flex justify-center flex-wrap gap-x-6 gap-y-2 pb-6 text-xs font-bold border-t pt-6 mx-6"
+            style="color: var(--day-text); border-color: var(--glass-border)">
+            <div class="flex items-center gap-2"><span class="w-3 h-3 rounded-full block shadow-sm"
+                    style="background: var(--period-bg)"></span> Periode</div>
+            <div class="flex items-center gap-2"><span class="w-3 h-3 rounded-full block border-2 border-dashed"
+                    style="border-color: var(--primary-color); background: var(--day-bg)"></span> Prognose</div>
+            <div class="flex items-center gap-2"><span class="w-3 h-3 rounded-full border-2 block shadow-sm"
+                    style="border-color: var(--ovulation-color); background: var(--day-bg)"></span> Eisprung</div>
         </div>
     </div>
 
     <!-- ANALYSIS SECTION -->
-    <div id="analysis-section" class="glass-panel w-full max-w-[500px] rounded-[2.5rem] shadow-xl shadow-indigo-900/5 p-6 mb-8 fade-in relative overflow-hidden">
+    <div id="analysis-section"
+        class="glass-panel w-full max-w-[500px] rounded-[2.5rem] shadow-xl shadow-indigo-900/5 p-6 mb-8 fade-in relative overflow-hidden">
         <h2 class="text-xl font-extrabold mb-6 flex items-center" style="color: var(--day-text)">
-            <span class="p-2.5 rounded-xl mr-3 shadow-sm bg-white/50" style="color: var(--text-primary)"><i class="fa-solid fa-chart-line"></i></span>
+            <span class="p-2.5 rounded-xl mr-3 shadow-sm bg-white/50" style="color: var(--text-primary)"><i
+                    class="fa-solid fa-chart-line"></i></span>
             Analyse & Verlauf
         </h2>
         <div class="grid grid-cols-2 gap-4 mb-6 privacy-blur transition-all duration-300">
             <div class="glass-panel p-4 rounded-3xl hover:border-slate-300 transition-colors shadow-sm">
-                <p class="text-[10px] uppercase font-bold tracking-wider mb-1 opacity-70" style="color: var(--day-text)">Ø Zyklus (Smart)</p>
+                <p class="text-[10px] uppercase font-bold tracking-wider mb-1 opacity-70"
+                    style="color: var(--day-text)">Ø Zyklus (Smart)</p>
                 <p id="stat-avg-length" class="text-2xl font-extrabold" style="color: var(--text-primary)">-- Tage</p>
-                <p id="stat-length-feedback" class="text-[10px] font-bold mt-1 bg-white/50 inline-block px-2 py-0.5 rounded-lg text-slate-500">Daten sammeln...</p>
+                <p id="stat-length-feedback"
+                    class="text-[10px] font-bold mt-1 bg-white/50 inline-block px-2 py-0.5 rounded-lg text-slate-500">
+                    Daten sammeln...</p>
             </div>
             <div class="glass-panel p-4 rounded-3xl hover:border-slate-300 transition-colors shadow-sm">
-                <p class="text-[10px] uppercase font-bold tracking-wider mb-1 opacity-70" style="color: var(--day-text)">Ø Dauer</p>
+                <p class="text-[10px] uppercase font-bold tracking-wider mb-1 opacity-70"
+                    style="color: var(--day-text)">Ø Dauer</p>
                 <p id="stat-avg-duration" class="text-2xl font-extrabold" style="color: var(--text-primary)">-- Tage</p>
-                <p id="stat-duration-feedback" class="text-[10px] font-bold mt-1 bg-white/50 inline-block px-2 py-0.5 rounded-lg text-slate-500">Daten sammeln...</p>
+                <p id="stat-duration-feedback"
+                    class="text-[10px] font-bold mt-1 bg-white/50 inline-block px-2 py-0.5 rounded-lg text-slate-500">
+                    Daten sammeln...</p>
             </div>
         </div>
-        
+
         <!-- Regularity Feedback -->
-        <div id="regularity-box" class="hidden bg-orange-50/80 border border-orange-200 p-4 rounded-2xl mb-4 privacy-blur">
+        <div id="regularity-box"
+            class="hidden bg-orange-50/80 border border-orange-200 p-4 rounded-2xl mb-4 privacy-blur">
             <div class="flex items-start gap-3">
                 <i class="fa-solid fa-triangle-exclamation text-orange-500 mt-1"></i>
                 <div>
                     <p class="text-xs font-bold text-orange-800">Unregelmäßiger Zyklus</p>
-                    <p id="regularity-text" class="text-[10px] text-orange-700 leading-snug mt-1">Deine Zyklen schwanken. Prognose nutzt Median für mehr Sicherheit.</p>
+                    <p id="regularity-text" class="text-[10px] text-orange-700 leading-snug mt-1">Deine Zyklen
+                        schwanken. Prognose nutzt Median für mehr Sicherheit.</p>
                 </div>
             </div>
         </div>
 
         <div class="glass-panel rounded-3xl p-4 shadow-inner mb-2 privacy-blur transition-all duration-300">
-            <p class="text-xs font-bold mb-3 ml-1 opacity-70" style="color: var(--day-text)">Zyklusverlauf (letzte 6)</p>
+            <p class="text-xs font-bold mb-3 ml-1 opacity-70" style="color: var(--day-text)">Zyklusverlauf (letzte 6)
+            </p>
             <div class="w-full h-32 flex items-end justify-center relative" id="chart-container">
-                <p class="text-xs self-center opacity-50" style="color: var(--day-text)">Noch nicht genügend Daten für die Grafik.</p>
+                <p class="text-xs self-center opacity-50" style="color: var(--day-text)">Noch nicht genügend Daten für
+                    die Grafik.</p>
             </div>
         </div>
-        
+
         <p class="text-[10px] text-center mt-4 opacity-50" style="color: var(--day-text)">
             <i class="fa-solid fa-shield-halved mr-1"></i> Keine Verhütungsmethode. Daten lokal gespeichert.
         </p>
@@ -330,160 +518,218 @@
 
     <!-- FOOTER -->
     <footer class="glass-panel px-6 py-3 rounded-full mb-8 fade-in flex items-center justify-center gap-2 shadow-lg">
-        <span id="footer-quote" class="text-xs font-extrabold uppercase tracking-wider quote-anim" style="color: var(--text-primary)">YOU GO GIRL</span>
+        <span id="footer-quote" class="text-xs font-extrabold uppercase tracking-wider quote-anim"
+            style="color: var(--text-primary)">YOU GO GIRL</span>
     </footer>
 
     <!-- MODAL: Tag Details -->
-    <div id="day-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/20 backdrop-blur-sm fade-in" onclick="if(event.target === this) closeDayModal()">
-        <div class="glass-panel rounded-[2rem] shadow-2xl w-full max-w-xs overflow-hidden transform transition-all scale-100 bg-white">
+    <div id="day-modal"
+        class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/20 backdrop-blur-sm fade-in"
+        onclick="if(event.target === this) closeDayModal()">
+        <div
+            class="glass-panel rounded-[2rem] shadow-2xl w-full max-w-xs overflow-hidden transform transition-all scale-100 bg-white">
             <div class="header-bg p-4 text-white text-center relative">
                 <h3 id="modal-date-title" class="text-lg font-bold">Details</h3>
-                <button onclick="closeDayModal()" class="absolute top-4 right-4 text-white/80 hover:text-white"><i class="fa-solid fa-xmark fa-lg"></i></button>
+                <button onclick="closeDayModal()" class="absolute top-4 right-4 text-white/80 hover:text-white"><i
+                        class="fa-solid fa-xmark fa-lg"></i></button>
             </div>
             <div class="p-6 bg-white dark:bg-slate-800 transition-colors">
-                <div class="flex justify-between items-center mb-6 bg-slate-50 p-3 rounded-2xl border border-slate-100 dark:bg-slate-700 dark:border-slate-600">
-                    <span class="font-bold text-slate-700 dark:text-slate-200 flex items-center"><i class="fa-solid fa-droplet mr-2 text-red-400"></i>Periode?</span>
-                    <button id="modal-period-toggle" onclick="togglePeriodFromModal()" class="px-4 py-1.5 rounded-full text-sm font-bold border-2 transition-all">Nein</button>
+                <div
+                    class="flex justify-between items-center mb-6 bg-slate-50 p-3 rounded-2xl border border-slate-100 dark:bg-slate-700 dark:border-slate-600">
+                    <span class="font-bold text-slate-700 dark:text-slate-200 flex items-center"><i
+                            class="fa-solid fa-droplet mr-2 text-red-400"></i>Periode?</span>
+                    <button id="modal-period-toggle" onclick="togglePeriodFromModal()"
+                        class="px-4 py-1.5 rounded-full text-sm font-bold border-2 transition-all">Nein</button>
                 </div>
                 <p class="text-xs font-bold text-slate-400 uppercase mb-3 tracking-wider">Stimmung</p>
                 <div class="flex justify-between mb-6">
-                    <button onclick="toggleSymptom('mood', 'happy')" class="symptom-btn w-12 h-12 rounded-2xl border flex items-center justify-center text-2xl" data-cat="mood" data-val="happy">😊</button>
-                    <button onclick="toggleSymptom('mood', 'neutral')" class="symptom-btn w-12 h-12 rounded-2xl border flex items-center justify-center text-2xl" data-cat="mood" data-val="neutral">😐</button>
-                    <button onclick="toggleSymptom('mood', 'sad')" class="symptom-btn w-12 h-12 rounded-2xl border flex items-center justify-center text-2xl" data-cat="mood" data-val="sad">😢</button>
-                    <button onclick="toggleSymptom('mood', 'angry')" class="symptom-btn w-12 h-12 rounded-2xl border flex items-center justify-center text-2xl" data-cat="mood" data-val="angry">😡</button>
+                    <button onclick="toggleSymptom('mood', 'happy')"
+                        class="symptom-btn w-12 h-12 rounded-2xl border flex items-center justify-center text-2xl"
+                        data-cat="mood" data-val="happy">😊</button>
+                    <button onclick="toggleSymptom('mood', 'neutral')"
+                        class="symptom-btn w-12 h-12 rounded-2xl border flex items-center justify-center text-2xl"
+                        data-cat="mood" data-val="neutral">😐</button>
+                    <button onclick="toggleSymptom('mood', 'sad')"
+                        class="symptom-btn w-12 h-12 rounded-2xl border flex items-center justify-center text-2xl"
+                        data-cat="mood" data-val="sad">😢</button>
+                    <button onclick="toggleSymptom('mood', 'angry')"
+                        class="symptom-btn w-12 h-12 rounded-2xl border flex items-center justify-center text-2xl"
+                        data-cat="mood" data-val="angry">😡</button>
                 </div>
                 <p class="text-xs font-bold text-slate-400 uppercase mb-3 tracking-wider">Körper</p>
                 <div class="flex justify-between gap-2">
-                    <div class="flex flex-col items-center gap-1 cursor-pointer symptom-wrapper" onclick="toggleSymptom('body', 'cramps')" data-target-val="cramps">
-                        <div class="symptom-btn w-12 h-12 rounded-2xl border flex items-center justify-center text-xl" data-cat="body" data-val="cramps">⚡</div>
+                    <div class="flex flex-col items-center gap-1 cursor-pointer symptom-wrapper"
+                        onclick="toggleSymptom('body', 'cramps')" data-target-val="cramps">
+                        <div class="symptom-btn w-12 h-12 rounded-2xl border flex items-center justify-center text-xl"
+                            data-cat="body" data-val="cramps">⚡</div>
                         <span class="text-[10px] font-bold text-slate-400 uppercase tracking-tight">Krämpfe</span>
                     </div>
-                    <div class="flex flex-col items-center gap-1 cursor-pointer symptom-wrapper" onclick="toggleSymptom('body', 'headache')" data-target-val="headache">
-                        <div class="symptom-btn w-12 h-12 rounded-2xl border flex items-center justify-center text-xl" data-cat="body" data-val="headache">🤕</div>
+                    <div class="flex flex-col items-center gap-1 cursor-pointer symptom-wrapper"
+                        onclick="toggleSymptom('body', 'headache')" data-target-val="headache">
+                        <div class="symptom-btn w-12 h-12 rounded-2xl border flex items-center justify-center text-xl"
+                            data-cat="body" data-val="headache">🤕</div>
                         <span class="text-[10px] font-bold text-slate-400 uppercase tracking-tight">Kopf</span>
                     </div>
-                    <div class="flex flex-col items-center gap-1 cursor-pointer symptom-wrapper" onclick="toggleSymptom('body', 'tired')" data-target-val="tired">
-                        <div class="symptom-btn w-12 h-12 rounded-2xl border flex items-center justify-center text-xl" data-cat="body" data-val="tired">💤</div>
+                    <div class="flex flex-col items-center gap-1 cursor-pointer symptom-wrapper"
+                        onclick="toggleSymptom('body', 'tired')" data-target-val="tired">
+                        <div class="symptom-btn w-12 h-12 rounded-2xl border flex items-center justify-center text-xl"
+                            data-cat="body" data-val="tired">💤</div>
                         <span class="text-[10px] font-bold text-slate-400 uppercase tracking-tight">Müde</span>
                     </div>
-                    <div class="flex flex-col items-center gap-1 cursor-pointer symptom-wrapper" onclick="toggleSymptom('body', 'acne')" data-target-val="acne">
-                        <div class="symptom-btn w-12 h-12 rounded-2xl border flex items-center justify-center text-xl" data-cat="body" data-val="acne">🔴</div>
+                    <div class="flex flex-col items-center gap-1 cursor-pointer symptom-wrapper"
+                        onclick="toggleSymptom('body', 'acne')" data-target-val="acne">
+                        <div class="symptom-btn w-12 h-12 rounded-2xl border flex items-center justify-center text-xl"
+                            data-cat="body" data-val="acne">🔴</div>
                         <span class="text-[10px] font-bold text-slate-400 uppercase tracking-tight">Haut</span>
                     </div>
                 </div>
             </div>
-            <div class="bg-slate-50 p-4 border-t border-slate-100 flex justify-center dark:bg-slate-800 dark:border-slate-700">
-                <button onclick="closeDayModal()" class="text-sm font-bold text-slate-500 hover:text-slate-800 dark:hover:text-slate-300">Schließen</button>
+            <div
+                class="bg-slate-50 p-4 border-t border-slate-100 flex justify-center dark:bg-slate-800 dark:border-slate-700">
+                <button onclick="closeDayModal()"
+                    class="text-sm font-bold text-slate-500 hover:text-slate-800 dark:hover:text-slate-300">Schließen</button>
             </div>
         </div>
     </div>
 
     <!-- SETTINGS PANEL -->
-    <div id="settings-panel" class="hidden fixed inset-0 z-50 bg-white/95 backdrop-blur-xl flex flex-col p-6 transition-all dark:bg-slate-900/95">
+    <div id="settings-panel"
+        class="hidden fixed inset-0 z-50 bg-white/95 backdrop-blur-xl flex flex-col p-6 transition-all dark:bg-slate-900/95">
         <div class="flex justify-between items-center mb-6 shrink-0">
             <h3 class="font-bold text-slate-700 text-xl dark:text-white">Einstellungen</h3>
-            <button onclick="toggleSettings()" class="text-sm font-bold bg-slate-800 text-white px-6 py-2 rounded-xl hover:bg-slate-700 shadow-lg dark:bg-slate-600 dark:hover:bg-slate-500">Fertig</button>
+            <button onclick="toggleSettings()"
+                class="text-sm font-bold bg-slate-800 text-white px-6 py-2 rounded-xl hover:bg-slate-700 shadow-lg dark:bg-slate-600 dark:hover:bg-slate-500">Fertig</button>
         </div>
 
         <div class="space-y-6 overflow-y-auto pb-20">
             <!-- Simplified Color Picker -->
             <div class="space-y-4">
-                <h4 class="font-bold text-slate-700 border-b border-slate-200 pb-2 dark:text-slate-300 dark:border-slate-700">Design anpassen</h4>
-                
+                <h4
+                    class="font-bold text-slate-700 border-b border-slate-200 pb-2 dark:text-slate-300 dark:border-slate-700">
+                    Design anpassen</h4>
+
                 <!-- DARK MODE TOGGLE -->
-                <div class="flex items-center justify-between bg-slate-50 dark:bg-slate-800 p-3 rounded-2xl border border-slate-200 dark:border-slate-700">
+                <div
+                    class="flex items-center justify-between bg-slate-50 dark:bg-slate-800 p-3 rounded-2xl border border-slate-200 dark:border-slate-700">
                     <div>
                         <span class="block text-sm font-bold text-slate-700 dark:text-slate-200">Dark Mode 🌙</span>
                         <span class="text-xs text-slate-400">Dunkles Design aktivieren</span>
                     </div>
-                    <div class="relative inline-block w-12 h-6 align-middle select-none transition duration-200 ease-in">
-                        <input type="checkbox" name="toggle" id="dark-mode-toggle" class="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-4 appearance-none cursor-pointer border-slate-300 dark:border-slate-600" onchange="toggleDarkMode()"/>
-                        <label for="dark-mode-toggle" class="toggle-label block overflow-hidden h-6 rounded-full bg-slate-300 cursor-pointer dark:bg-slate-700"></label>
+                    <div
+                        class="relative inline-block w-12 h-6 align-middle select-none transition duration-200 ease-in">
+                        <input type="checkbox" name="toggle" id="dark-mode-toggle"
+                            class="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-4 appearance-none cursor-pointer border-slate-300 dark:border-slate-600"
+                            onchange="toggleDarkMode()" />
+                        <label for="dark-mode-toggle"
+                            class="toggle-label block overflow-hidden h-6 rounded-full bg-slate-300 cursor-pointer dark:bg-slate-700"></label>
                     </div>
                 </div>
 
                 <div class="space-y-3">
-                    <div class="color-picker-wrapper cursor-pointer dark:bg-slate-800 dark:border-slate-700" onclick="document.getElementById('input-main-color').click()">
+                    <div class="color-picker-wrapper cursor-pointer dark:bg-slate-800 dark:border-slate-700"
+                        onclick="document.getElementById('input-main-color').click()">
                         <div class="flex-1">
-                            <label class="block text-sm font-bold text-slate-700 dark:text-slate-200">Deine Lieblingsfarbe</label>
+                            <label class="block text-sm font-bold text-slate-700 dark:text-slate-200">Deine
+                                Lieblingsfarbe</label>
                             <p class="text-xs text-slate-400 mt-0.5">Bestimmt das gesamte Aussehen der App.</p>
                         </div>
-                        <input type="color" id="input-main-color" value="#ec4899" onchange="updateSmartTheme(this.value)">
+                        <input type="color" id="input-main-color" value="#ec4899"
+                            onchange="updateSmartTheme(this.value)">
                     </div>
 
-                    <div class="color-picker-wrapper cursor-pointer dark:bg-slate-800 dark:border-slate-700" onclick="document.getElementById('input-period-color').click()">
+                    <div class="color-picker-wrapper cursor-pointer dark:bg-slate-800 dark:border-slate-700"
+                        onclick="document.getElementById('input-period-color').click()">
                         <div class="flex-1">
-                            <label class="block text-sm font-bold text-slate-700 dark:text-slate-200">Farbe für Periode</label>
+                            <label class="block text-sm font-bold text-slate-700 dark:text-slate-200">Farbe für
+                                Periode</label>
                             <p class="text-xs text-slate-400 mt-0.5">Markierung im Kalender.</p>
                         </div>
-                        <input type="color" id="input-period-color" value="#ff758c" onchange="updatePeriodColor(this.value)">
+                        <input type="color" id="input-period-color" value="#ff758c"
+                            onchange="updatePeriodColor(this.value)">
                     </div>
 
-                    <div class="color-picker-wrapper cursor-pointer dark:bg-slate-800 dark:border-slate-700" onclick="document.getElementById('input-ovulation-color').click()">
+                    <div class="color-picker-wrapper cursor-pointer dark:bg-slate-800 dark:border-slate-700"
+                        onclick="document.getElementById('input-ovulation-color').click()">
                         <div class="flex-1">
-                            <label class="block text-sm font-bold text-slate-700 dark:text-slate-200">Farbe für Eisprung</label>
+                            <label class="block text-sm font-bold text-slate-700 dark:text-slate-200">Farbe für
+                                Eisprung</label>
                             <p class="text-xs text-slate-400 mt-0.5">Markierung für fruchtbare Tage.</p>
                         </div>
-                        <input type="color" id="input-ovulation-color" value="#a855f7" onchange="updateOvulationColor(this.value)">
+                        <input type="color" id="input-ovulation-color" value="#a855f7"
+                            onchange="updateOvulationColor(this.value)">
                     </div>
                 </div>
-                
+
                 <div class="text-center pt-2">
-                    <button onclick="resetColors()" class="text-xs font-bold text-slate-400 hover:text-slate-600 underline decoration-slate-300 dark:hover:text-slate-300">Standardfarben wiederherstellen</button>
+                    <button onclick="resetColors()"
+                        class="text-xs font-bold text-slate-400 hover:text-slate-600 underline decoration-slate-300 dark:hover:text-slate-300">Standardfarben
+                        wiederherstellen</button>
                 </div>
             </div>
 
             <div class="border-t border-slate-100 pt-4 dark:border-slate-700">
-                <label class="block text-sm font-bold text-slate-600 mb-2 dark:text-slate-400">Manuelle Zykluslänge (Fallback)</label>
-                <input type="number" id="cycle-length-input" value="28" class="w-full p-3 bg-slate-50 border-0 ring-1 ring-slate-200 rounded-xl focus:ring-2 focus:ring-pink-500 outline-none font-bold dark:bg-slate-800 dark:ring-slate-700 dark:text-white" onchange="saveSettings()">
+                <label class="block text-sm font-bold text-slate-600 mb-2 dark:text-slate-400">Manuelle Zykluslänge
+                    (Fallback)</label>
+                <input type="number" id="cycle-length-input" value="28"
+                    class="w-full p-3 bg-slate-50 border-0 ring-1 ring-slate-200 rounded-xl focus:ring-2 focus:ring-pink-500 outline-none font-bold dark:bg-slate-800 dark:ring-slate-700 dark:text-white"
+                    onchange="saveSettings()">
                 <p class="text-xs text-slate-400 mt-2">Wird genutzt, wenn die intelligente Analyse noch lernt.</p>
             </div>
-            
+
             <!-- NEU: Backup Section -->
             <div class="border-t border-slate-100 pt-4 dark:border-slate-700">
                 <h4 class="font-bold text-slate-700 mb-3 dark:text-slate-300">Backup & Daten</h4>
                 <div class="grid grid-cols-2 gap-3">
-                    <button onclick="exportData()" class="flex flex-col items-center justify-center p-3 rounded-xl bg-slate-50 hover:bg-slate-100 border border-slate-200 dark:bg-slate-800 dark:border-slate-600 dark:hover:bg-slate-700 transition">
+                    <button onclick="exportData()"
+                        class="flex flex-col items-center justify-center p-3 rounded-xl bg-slate-50 hover:bg-slate-100 border border-slate-200 dark:bg-slate-800 dark:border-slate-600 dark:hover:bg-slate-700 transition">
                         <i class="fa-solid fa-download mb-2 text-slate-500"></i>
                         <span class="text-xs font-bold text-slate-600 dark:text-slate-300">Exportieren</span>
                     </button>
-                    <label class="flex flex-col items-center justify-center p-3 rounded-xl bg-slate-50 hover:bg-slate-100 border border-slate-200 dark:bg-slate-800 dark:border-slate-600 dark:hover:bg-slate-700 transition cursor-pointer">
+                    <label
+                        class="flex flex-col items-center justify-center p-3 rounded-xl bg-slate-50 hover:bg-slate-100 border border-slate-200 dark:bg-slate-800 dark:border-slate-600 dark:hover:bg-slate-700 transition cursor-pointer">
                         <i class="fa-solid fa-upload mb-2 text-slate-500"></i>
                         <span class="text-xs font-bold text-slate-600 dark:text-slate-300">Importieren</span>
                         <input type="file" id="import-file" class="hidden" accept=".json" onchange="importData(this)">
                     </label>
                 </div>
             </div>
-            
+
             <!-- Reset Button Zone -->
             <div class="pt-8 mt-4 border-t border-slate-100 dark:border-slate-700">
-                <button onclick="confirmReset()" class="w-full text-sm font-bold text-red-500 hover:text-red-600 flex items-center justify-center bg-red-50 px-4 py-3 rounded-xl dark:bg-red-900/20 transition-colors"><i class="fa-solid fa-trash mr-2"></i>App zurücksetzen</button>
+                <button onclick="confirmReset()"
+                    class="w-full text-sm font-bold text-red-500 hover:text-red-600 flex items-center justify-center bg-red-50 px-4 py-3 rounded-xl dark:bg-red-900/20 transition-colors"><i
+                        class="fa-solid fa-trash mr-2"></i>App zurücksetzen</button>
             </div>
         </div>
     </div>
 
     <!-- CUSTOM CONFIRM MODAL -->
-    <div id="confirm-modal" class="hidden fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm">
+    <div id="confirm-modal"
+        class="hidden fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm">
         <div class="bg-white rounded-2xl p-6 shadow-2xl max-w-sm w-full text-center dark:bg-slate-800">
             <h3 class="font-bold text-lg text-slate-800 mb-2 dark:text-white">Wirklich zurücksetzen?</h3>
-            <p class="text-slate-500 mb-6 text-sm dark:text-slate-400">Alle gespeicherten Daten gehen unwiderruflich verloren.</p>
+            <p class="text-slate-500 mb-6 text-sm dark:text-slate-400">Alle gespeicherten Daten gehen unwiderruflich
+                verloren.</p>
             <div class="flex gap-3 justify-center">
-                <button onclick="closeConfirmModal()" class="px-4 py-2 rounded-xl font-bold text-slate-600 bg-slate-100 hover:bg-slate-200 dark:bg-slate-700 dark:text-slate-300">Abbrechen</button>
-                <button onclick="performReset()" class="px-4 py-2 rounded-xl font-bold text-white bg-red-500 hover:bg-red-600 shadow-md">Löschen</button>
+                <button onclick="closeConfirmModal()"
+                    class="px-4 py-2 rounded-xl font-bold text-slate-600 bg-slate-100 hover:bg-slate-200 dark:bg-slate-700 dark:text-slate-300">Abbrechen</button>
+                <button onclick="performReset()"
+                    class="px-4 py-2 rounded-xl font-bold text-white bg-red-500 hover:bg-red-600 shadow-md">Löschen</button>
             </div>
         </div>
     </div>
 
     <script>
         let currentDate = new Date();
-        let periodData = {}; 
-        let symptomData = {}; 
+        let periodData = {};
+        let symptomData = {};
         let settings = { cycleLength: 28, customColors: null, baseColor: '#ec4899', periodColor: '#ff758c', ovulationColor: '#a855f7', darkMode: false };
         let isPrivacyMode = false;
-        let selectedDateKey = null; 
+        let selectedDateKey = null;
+        let lastInteractedDate = null; // Für Smart-Fill
         let pressTimer;
         let isLongPressTriggered = false;
-        let isScrolling = false; 
+        let isScrolling = false;
 
         const DEFAULTS = {
             bgStart: '#fbcfe8',
@@ -499,50 +745,50 @@
         };
 
         const PHASES = {
-            MENSTRUATION: { 
-                name: "Menstruation", 
-                tips: "✨ Gönn dir Ruhe & Wärme. \n🥗 Iss Eisenreiches (Spinat, Fleisch) & Nüsse. \n🚫 Vermeide Koffein & Salziges.", 
-                color: "bg-gradient-to-r from-pink-500 to-rose-500 shadow-pink-500/40" 
+            MENSTRUATION: {
+                name: "Menstruation",
+                tips: "✨ Gönn dir Ruhe & Wärme. \n🥗 Iss Eisenreiches (Spinat, Fleisch) & Nüsse. \n🚫 Vermeide Koffein & Salziges.",
+                color: "bg-gradient-to-r from-pink-500 to-rose-500 shadow-pink-500/40"
             },
-            FOLLICULAR: { 
-                name: "Follikelphase", 
-                tips: "⚡ Deine Energie steigt! Perfekt für neue Projekte & Sport. \n🥗 Iss frisches Gemüse, Proteine & fermentierte Foods.", 
-                color: "bg-gradient-to-r from-pink-400 to-purple-400 shadow-purple-500/40" 
+            FOLLICULAR: {
+                name: "Follikelphase",
+                tips: "⚡ Deine Energie steigt! Perfekt für neue Projekte & Sport. \n🥗 Iss frisches Gemüse, Proteine & fermentierte Foods.",
+                color: "bg-gradient-to-r from-pink-400 to-purple-400 shadow-purple-500/40"
             },
-            OVULATION: { 
-                name: "Eisprung", 
-                tips: "🔥 Du bist in Höchstform! Power dich beim Sport aus. \n🥗 Iss Ballaststoffe & Antioxidantien (Beeren).", 
-                color: "bg-gradient-to-r from-purple-500 to-indigo-500 shadow-indigo-500/40" 
+            OVULATION: {
+                name: "Eisprung",
+                tips: "🔥 Du bist in Höchstform! Power dich beim Sport aus. \n🥗 Iss Ballaststoffe & Antioxidantien (Beeren).",
+                color: "bg-gradient-to-r from-purple-500 to-indigo-500 shadow-indigo-500/40"
             },
-            LUTEAL: { 
-                name: "Lutealphase", 
-                tips: "🌙 Zeit für Rückzug. Sei sanft zu dir. \n🥗 Komplexe Kohlenhydrate gegen Heißhunger. Magnesium hilft. \n💤 Priorisiere Schlaf.", 
-                color: "bg-gradient-to-r from-amber-400 to-orange-500 shadow-orange-500/40" 
+            LUTEAL: {
+                name: "Lutealphase",
+                tips: "🌙 Zeit für Rückzug. Sei sanft zu dir. \n🥗 Komplexe Kohlenhydrate gegen Heißhunger. Magnesium hilft. \n💤 Priorisiere Schlaf.",
+                color: "bg-gradient-to-r from-amber-400 to-orange-500 shadow-orange-500/40"
             }
         };
 
         const QUOTES = ["YOU GO GIRL 💖", "SLAY 💅", "LOVE YOURSELF ✨", "BOSS BITCH 👑", "POWER WOMAN 💪", "TRUST YOUR FLOW 🌊", "SHINE BRIGHT 💎"];
 
-        function init() { 
-            loadData(); 
-            
+        function init() {
+            loadData();
+
             document.getElementById('dark-mode-toggle').checked = settings.darkMode || false;
             document.getElementById('input-main-color').value = settings.baseColor || '#ec4899';
             document.getElementById('input-period-color').value = settings.periodColor || '#ff758c';
             document.getElementById('input-ovulation-color').value = settings.ovulationColor || '#a855f7';
 
             if (settings.customColors) {
-                if(!settings.customColors.ovulation) settings.customColors.ovulation = settings.ovulationColor || DEFAULTS.ovulation;
+                if (!settings.customColors.ovulation) settings.customColors.ovulation = settings.ovulationColor || DEFAULTS.ovulation;
                 updateSmartTheme(settings.baseColor || DEFAULTS.primary);
             } else {
                 updateSmartTheme(DEFAULTS.primary);
             }
-            
+
             const randomQuote = QUOTES[Math.floor(Math.random() * QUOTES.length)];
             document.getElementById('footer-quote').textContent = randomQuote;
 
-            renderCalendar(); 
-            updateAnalysis(); 
+            renderCalendar();
+            updateAnalysis();
         }
 
         function saveData() {
@@ -571,7 +817,7 @@
                 console.warn("Storage not available");
             }
         }
-        
+
         // --- NEW: EXPORT / IMPORT ---
         function exportData() {
             const data = {
@@ -595,7 +841,7 @@
             if (!file) return;
 
             const reader = new FileReader();
-            reader.onload = function(e) {
+            reader.onload = function (e) {
                 try {
                     const imported = JSON.parse(e.target.result);
                     if (imported.periodData && imported.settings) {
@@ -624,7 +870,7 @@
                 r = "0x" + H[1] + H[2]; g = "0x" + H[3] + H[4]; b = "0x" + H[5] + H[6];
             }
             r /= 255; g /= 255; b /= 255;
-            let cmin = Math.min(r,g,b), cmax = Math.max(r,g,b), delta = cmax - cmin;
+            let cmin = Math.min(r, g, b), cmax = Math.max(r, g, b), delta = cmax - cmin;
             let h = 0, s = 0, l = 0;
 
             if (delta == 0) h = 0;
@@ -640,7 +886,7 @@
             s = +(s * 100).toFixed(1);
             l = +(l * 100).toFixed(1);
 
-            return {h, s, l};
+            return { h, s, l };
         }
 
         function hslToHex(h, s, l) {
@@ -669,29 +915,29 @@
         function updateSmartTheme(baseHex) {
             const hsl = hexToHSL(baseHex);
             const isDark = settings.darkMode;
-            
+
             let bgStart, bgEnd, headerStart, headerEnd, textPrimary, accent, dayBg, dayText, glassBg, glassBorder, shapeFill;
 
             if (isDark) {
-                bgStart = hslToHex(hsl.h, 40, 10); 
-                bgEnd = hslToHex(hsl.h, 50, 20);   
+                bgStart = hslToHex(hsl.h, 40, 10);
+                bgEnd = hslToHex(hsl.h, 50, 20);
                 headerStart = hslToHex(hsl.h, hsl.s, 30);
                 headerEnd = hslToHex((hsl.h + 30) % 360, hsl.s, 25);
-                textPrimary = "#e2e8f0"; 
-                accent = hslToHex(hsl.h, 80, 70); 
-                dayBg = "rgba(30, 41, 59, 0.8)"; 
+                textPrimary = "#e2e8f0";
+                accent = hslToHex(hsl.h, 80, 70);
+                dayBg = "rgba(30, 41, 59, 0.8)";
                 dayText = "#e2e8f0";
-                glassBg = "rgba(15, 23, 42, 0.85)"; 
+                glassBg = "rgba(15, 23, 42, 0.85)";
                 glassBorder = "rgba(255, 255, 255, 0.1)";
                 shapeFill = "rgba(15, 23, 42, 0.85)";
             } else {
                 headerStart = baseHex;
                 headerEnd = hslToHex((hsl.h + 30) % 360, hsl.s, hsl.l);
-                bgStart = hslToHex(hsl.h, 70, 95); 
-                bgEnd = hslToHex(hsl.h, 80, 50); 
-                const textL = Math.min(hsl.l, 40); 
+                bgStart = hslToHex(hsl.h, 70, 95);
+                bgEnd = hslToHex(hsl.h, 80, 50);
+                const textL = Math.min(hsl.l, 40);
                 accent = hslToHex(hsl.h, 80, textL);
-                textPrimary = hslToHex(hsl.h, 90, 35); 
+                textPrimary = hslToHex(hsl.h, 90, 35);
                 dayBg = "rgba(255,255,255,0.75)";
                 dayText = "#334155";
                 glassBg = "rgba(255, 255, 255, 0.92)";
@@ -735,20 +981,20 @@
             root.style.setProperty('--bg-gradient', `linear-gradient(135deg, ${colors.bgStart} 0%, ${colors.bgEnd} 100%)`);
             root.style.setProperty('--header-gradient', `linear-gradient(to right, ${colors.headerStart}, ${colors.headerEnd})`);
             root.style.setProperty('--primary-color', colors.primary);
-            root.style.setProperty('--text-primary', colors.textPrimary || colors.accent); 
+            root.style.setProperty('--text-primary', colors.textPrimary || colors.accent);
             root.style.setProperty('--period-bg', colors.period);
-            root.style.setProperty('--ovulation-color', colors.ovulation); 
+            root.style.setProperty('--ovulation-color', colors.ovulation);
             root.style.setProperty('--text-accent', colors.accent);
             root.style.setProperty('--chart-color', colors.primary);
-            
+
             root.style.setProperty('--glass-bg', colors.glassBg);
             root.style.setProperty('--glass-border', colors.glassBorder);
             root.style.setProperty('--day-bg', colors.dayBg);
             root.style.setProperty('--day-text', colors.dayText);
             root.style.setProperty('--shape-fill', colors.shapeFill);
-            
+
             const isDark = settings.darkMode;
-            if(isDark) document.documentElement.classList.add('dark');
+            if (isDark) document.documentElement.classList.add('dark');
             else document.documentElement.classList.remove('dark');
 
             renderCalendar();
@@ -761,12 +1007,12 @@
             settings.periodColor = DEFAULTS.period;
             settings.ovulationColor = DEFAULTS.ovulation;
             settings.darkMode = false;
-            
+
             document.getElementById('input-main-color').value = DEFAULTS.primary;
             document.getElementById('input-period-color').value = DEFAULTS.period;
             document.getElementById('input-ovulation-color').value = DEFAULTS.ovulation;
             document.getElementById('dark-mode-toggle').checked = false;
-            
+
             updateSmartTheme(DEFAULTS.primary);
             saveData();
         }
@@ -776,19 +1022,19 @@
         }
 
         function closeConfirmModal() {
-             document.getElementById('confirm-modal').classList.add('hidden');
+            document.getElementById('confirm-modal').classList.add('hidden');
         }
 
         function performReset() {
-            try { localStorage.clear(); } catch(e) {}
-            periodData = {}; symptomData = {}; 
+            try { localStorage.clear(); } catch (e) { }
+            periodData = {}; symptomData = {};
             settings = { cycleLength: 28, customColors: null, baseColor: '#ec4899', periodColor: '#ff758c', ovulationColor: '#a855f7', darkMode: false };
             init(); toggleSettings();
             closeConfirmModal();
         }
 
         function toggleSettings() { document.getElementById('settings-panel').classList.toggle('hidden'); }
-        
+
         function togglePrivacy() {
             isPrivacyMode = !isPrivacyMode;
             document.body.classList.toggle('privacy-mode', isPrivacyMode);
@@ -816,7 +1062,7 @@
                     if (navigator.vibrate) navigator.vibrate(50);
                     openDayModal(dateKey);
                 }
-            }, 500); 
+            }, 500);
         }
 
         function cancelPress() { clearTimeout(pressTimer); }
@@ -829,28 +1075,79 @@
         }
 
         function togglePeriodDirect(dateKey) {
-            if(periodData[dateKey]) delete periodData[dateKey];
+            // 1. Normaler Toggle
+            const wasActive = !!periodData[dateKey];
+            if (wasActive) delete periodData[dateKey];
             else periodData[dateKey] = true;
-            saveData(); renderCalendar();
+
+            const isNowActive = !wasActive;
+
+            // 2. Smart Fill Logik
+            if (isNowActive && lastInteractedDate) {
+                const prevDate = new Date(lastInteractedDate);
+                const currDate = new Date(dateKey);
+
+                // Prüfen ob das letzte Datum auch noch aktiv ist (könnte gelöscht worden sein)
+                if (periodData[lastInteractedDate]) {
+                    const diffTime = Math.abs(currDate - prevDate);
+                    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+                    // Wenn Abstand > 1 Tag und <= 8 Tage
+                    if (diffDays > 1 && diffDays <= 8) {
+                        fillRange(lastInteractedDate, dateKey);
+                        if (navigator.vibrate) navigator.vibrate([30, 50, 30]); // Feedback
+                    }
+                }
+            }
+
+            // Update last interaction
+            // Wir merken uns das Datum nur, wenn wir es AKTIVIERT haben.
+            // Wenn man löscht, unterbricht man die Kette.
+            if (isNowActive) {
+                lastInteractedDate = dateKey;
+            } else {
+                lastInteractedDate = null;
+            }
+
+            saveData();
+            renderCalendar();
+        }
+
+        function fillRange(startKey, endKey) {
+            let start = new Date(startKey);
+            let end = new Date(endKey);
+
+            if (end < start) {
+                const temp = start;
+                start = end;
+                end = temp;
+            }
+
+            const current = new Date(start);
+            while (current <= end) {
+                const key = formatDateKey(current);
+                periodData[key] = true;
+                current.setDate(current.getDate() + 1);
+            }
         }
 
         function openDayModal(dateKey) {
             selectedDateKey = dateKey;
             const dateObj = new Date(dateKey);
-            document.getElementById('modal-date-title').textContent = dateObj.toLocaleDateString('de-DE', {weekday: 'long', day: 'numeric', month: 'long'});
+            document.getElementById('modal-date-title').textContent = dateObj.toLocaleDateString('de-DE', { weekday: 'long', day: 'numeric', month: 'long' });
             document.getElementById('day-modal').classList.remove('hidden');
             updateModalUI();
         }
 
         function closeDayModal() {
             document.getElementById('day-modal').classList.add('hidden');
-            selectedDateKey = null; renderCalendar(); 
+            selectedDateKey = null; renderCalendar();
         }
 
         function updateModalUI() {
-            if(!selectedDateKey) return;
+            if (!selectedDateKey) return;
             const pBtn = document.getElementById('modal-period-toggle');
-            if(periodData[selectedDateKey]) {
+            if (periodData[selectedDateKey]) {
                 pBtn.textContent = "Ja (Aktiv)";
                 pBtn.style.backgroundColor = "white";
                 pBtn.style.color = "var(--primary-color)";
@@ -861,7 +1158,7 @@
                 pBtn.style.color = "var(--text-accent)";
                 pBtn.style.borderColor = "var(--primary-light)";
             }
-            
+
             const daySym = symptomData[selectedDateKey] || { body: [] };
             document.querySelectorAll('.symptom-btn').forEach(btn => btn.classList.remove('active'));
             document.querySelectorAll('.symptom-wrapper').forEach(wrap => wrap.classList.remove('selected'));
@@ -871,27 +1168,27 @@
                 if (cat === 'body' && daySym.body && daySym.body.includes(val)) {
                     btn.classList.add('active');
                     const wrapper = btn.closest('.symptom-wrapper');
-                    if(wrapper) wrapper.classList.add('selected');
+                    if (wrapper) wrapper.classList.add('selected');
                 }
             });
         }
 
         function togglePeriodFromModal() {
-            if(!selectedDateKey) return;
-            if(periodData[selectedDateKey]) delete periodData[selectedDateKey];
+            if (!selectedDateKey) return;
+            if (periodData[selectedDateKey]) delete periodData[selectedDateKey];
             else periodData[selectedDateKey] = true;
             saveData(); updateModalUI(); updateAnalysis();
         }
 
         function toggleSymptom(category, value) {
-            if(!selectedDateKey) return;
-            if(!symptomData[selectedDateKey]) symptomData[selectedDateKey] = { body: [] };
-            if(category === 'mood') {
-                if(symptomData[selectedDateKey].mood === value) delete symptomData[selectedDateKey].mood;
+            if (!selectedDateKey) return;
+            if (!symptomData[selectedDateKey]) symptomData[selectedDateKey] = { body: [] };
+            if (category === 'mood') {
+                if (symptomData[selectedDateKey].mood === value) delete symptomData[selectedDateKey].mood;
                 else symptomData[selectedDateKey].mood = value;
-            } else if(category === 'body') {
+            } else if (category === 'body') {
                 const idx = symptomData[selectedDateKey].body.indexOf(value);
-                if(idx > -1) symptomData[selectedDateKey].body.splice(idx, 1);
+                if (idx > -1) symptomData[selectedDateKey].body.splice(idx, 1);
                 else symptomData[selectedDateKey].body.push(value);
             }
             saveData(); updateModalUI();
@@ -906,7 +1203,7 @@
             let currentPeriod = [keys[0]];
 
             for (let i = 1; i < keys.length; i++) {
-                const prev = sToD(keys[i-1]);
+                const prev = sToD(keys[i - 1]);
                 const curr = sToD(keys[i]);
                 const diffDays = (curr - prev) / (1000 * 60 * 60 * 24);
                 if (diffDays <= 1.5) currentPeriod.push(keys[i]);
@@ -921,37 +1218,37 @@
                 periodDurations.push(p.length);
                 if (index < periods.length - 1) {
                     const startCurrent = sToD(p[0]);
-                    const startNext = sToD(periods[index+1][0]);
+                    const startNext = sToD(periods[index + 1][0]);
                     const days = (startNext - startCurrent) / (1000 * 60 * 60 * 24);
                     if (days >= 10 && days < 200) rawLengths.push(days);
                 }
             });
 
-            let predictedLen = 28; 
+            let predictedLen = 28;
             let method = "average";
             let variability = 0;
 
             if (rawLengths.length > 0) {
-                const sortedRaw = [...rawLengths].sort((a,b) => a-b);
+                const sortedRaw = [...rawLengths].sort((a, b) => a - b);
                 const globalMedian = sortedRaw[Math.floor(sortedRaw.length / 2)];
                 const lastCycle = rawLengths[rawLengths.length - 1];
                 const isRecentOutlier = Math.abs(lastCycle - globalMedian) > 3;
 
                 if (rawLengths.length >= 2) {
-                    const mean = rawLengths.reduce((a,b)=>a+b,0)/rawLengths.length;
-                    const variance = rawLengths.reduce((a,b) => a + Math.pow(b-mean, 2), 0) / rawLengths.length;
+                    const mean = rawLengths.reduce((a, b) => a + b, 0) / rawLengths.length;
+                    const variance = rawLengths.reduce((a, b) => a + Math.pow(b - mean, 2), 0) / rawLengths.length;
                     variability = Math.sqrt(variance);
                 }
 
                 if (rawLengths.length < 3) {
-                    predictedLen = Math.round(rawLengths.reduce((a,b)=>a+b,0)/rawLengths.length);
+                    predictedLen = Math.round(rawLengths.reduce((a, b) => a + b, 0) / rawLengths.length);
                 } else {
                     if (isRecentOutlier) {
                         predictedLen = globalMedian;
                         method = "median (stabilisiert)";
                     } else if (variability < 2) {
                         const recent = rawLengths.slice(-3);
-                        predictedLen = Math.round((recent[2]*0.5) + (recent[1]*0.3) + (recent[0]*0.2));
+                        predictedLen = Math.round((recent[2] * 0.5) + (recent[1] * 0.3) + (recent[0] * 0.2));
                         method = "trend";
                     } else {
                         predictedLen = globalMedian;
@@ -960,9 +1257,9 @@
                 }
             }
 
-            periodDurations.sort((a,b)=>a-b);
-            const medDur = periodDurations.length ? periodDurations[Math.floor(periodDurations.length/2)] : 5;
-            const lastStart = periods.length > 0 ? periods[periods.length-1][0] : null;
+            periodDurations.sort((a, b) => a - b);
+            const medDur = periodDurations.length ? periodDurations[Math.floor(periodDurations.length / 2)] : 5;
+            const lastStart = periods.length > 0 ? periods[periods.length - 1][0] : null;
 
             return { lastStart, predictedLength: predictedLen, medianDuration: medDur, cycles: rawLengths, variability, method };
         }
@@ -970,7 +1267,7 @@
         function renderChart(cycleLengths) {
             const container = document.getElementById('chart-container');
             const data = cycleLengths.slice(-6);
-            if(data.length < 2) { container.innerHTML = '<p class="text-xs self-center opacity-50" style="color: var(--day-text)">Noch nicht genügend Daten für die Grafik.</p>'; return; }
+            if (data.length < 2) { container.innerHTML = '<p class="text-xs self-center opacity-50" style="color: var(--day-text)">Noch nicht genügend Daten für die Grafik.</p>'; return; }
             const w = container.clientWidth; const h = container.clientHeight; const padding = 20;
             const min = Math.min(...data) - 2; const max = Math.max(...data) + 2; const range = max - min;
             const points = data.map((val, i) => {
@@ -979,9 +1276,9 @@
                 return `${x},${y}`;
             });
             let svgHTML = `<svg width="100%" height="100%" viewBox="0 0 ${w} ${h}">`;
-            for(let i=0; i<=4; i++) {
-                const y = h - padding - (i/4)*(h - padding*2);
-                svgHTML += `<line x1="${padding}" y1="${y}" x2="${w-padding}" y2="${y}" class="chart-grid" />`;
+            for (let i = 0; i <= 4; i++) {
+                const y = h - padding - (i / 4) * (h - padding * 2);
+                svgHTML += `<line x1="${padding}" y1="${y}" x2="${w - padding}" y2="${y}" class="chart-grid" />`;
             }
             svgHTML += `<polyline points="${points.join(' ')}" class="chart-line" />`;
             data.forEach((val, i) => {
@@ -998,7 +1295,7 @@
             const statusEl = document.getElementById('cycle-status');
             const phaseBadge = document.getElementById('phase-badge');
             const phaseBox = document.getElementById('phase-info-box');
-            
+
             const usedLen = (stats.predictedLength > 0) ? stats.predictedLength : settings.cycleLength;
 
             if (stats.lastStart) {
@@ -1015,12 +1312,12 @@
 
                 const nextPeriodDate = new Date(lastStartDate);
                 nextPeriodDate.setDate(nextPeriodDate.getDate() + usedLen);
-                
+
                 const rangeStart = new Date(nextPeriodDate);
                 rangeStart.setDate(rangeStart.getDate() - buffer);
                 const rangeEnd = new Date(nextPeriodDate);
                 rangeEnd.setDate(rangeEnd.getDate() + buffer);
-                
+
                 const formatDate = (d) => d.toLocaleDateString('de-DE', { day: '2-digit', month: 'short' });
                 const rangeString = `${formatDate(rangeStart)} - ${formatDate(rangeEnd)}`;
 
@@ -1039,32 +1336,32 @@
 
                     if (phase === PHASES.MENSTRUATION) {
                         const avgDur = stats.medianDuration > 0 ? stats.medianDuration : 5;
-                        const daysLeft = avgDur - cycleDay; 
-                        
+                        const daysLeft = avgDur - cycleDay;
+
                         if (daysLeft > 0) {
                             statusEl.innerHTML = `<span class="text-2xl font-bold block">Tag ${cycleDay}</span><span class="text-sm font-medium opacity-80 block mt-1">Endet in ca. ${daysLeft} Tagen</span>`;
                         } else if (daysLeft === 0) {
-                             statusEl.innerHTML = `<span class="text-2xl font-bold block">Tag ${cycleDay}</span><span class="text-sm font-medium opacity-80 block mt-1">Endet voraussichtlich heute</span>`;
+                            statusEl.innerHTML = `<span class="text-2xl font-bold block">Tag ${cycleDay}</span><span class="text-sm font-medium opacity-80 block mt-1">Endet voraussichtlich heute</span>`;
                         } else {
-                             statusEl.textContent = `Tag ${cycleDay} der Periode`;
+                            statusEl.textContent = `Tag ${cycleDay} der Periode`;
                         }
                     } else {
                         if (daysUntil > 0) {
-                             statusEl.innerHTML = `<span class="text-2xl font-bold block">Noch ${daysUntil} Tage</span><span class="text-sm font-medium opacity-80 block mt-1">Erwartet: ${rangeString}</span>`;
+                            statusEl.innerHTML = `<span class="text-2xl font-bold block">Noch ${daysUntil} Tage</span><span class="text-sm font-medium opacity-80 block mt-1">Erwartet: ${rangeString}</span>`;
                         } else {
-                             statusEl.textContent = `Überfällig (${Math.abs(daysUntil)})`;
+                            statusEl.textContent = `Überfällig (${Math.abs(daysUntil)})`;
                         }
                     }
 
                     phaseBadge.textContent = `${phase.name} (T.${cycleDay})`;
                     let badgeClass = "privacy-blur inline-block mt-3 backdrop-blur-md border border-white/30 rounded-full px-5 py-1.5 text-sm font-bold text-white shadow-lg ";
                     phaseBadge.className = badgeClass + phase.color.replace('shadow-pink-500/40', '').replace('shadow-purple-500/40', '').replace('shadow-indigo-500/40', '').replace('shadow-orange-500/40', '');
-                    phaseBadge.style.boxShadow = "0 4px 14px rgba(0,0,0,0.2)"; 
-                    
+                    phaseBadge.style.boxShadow = "0 4px 14px rgba(0,0,0,0.2)";
+
                     phaseBadge.classList.remove('hidden');
                     document.getElementById('phase-title').textContent = phase.name + " - Tipps";
                     document.getElementById('phase-desc').innerHTML = phase.tips.replace(/\n/g, '<br>');
-                    
+
                     phaseBox.classList.remove('hidden');
                 }
             } else { statusEl.textContent = "Keine Daten"; }
@@ -1073,27 +1370,27 @@
             const lenFeedback = document.getElementById('stat-length-feedback');
             const regBox = document.getElementById('regularity-box');
             const regText = document.getElementById('regularity-text');
-            
+
             lenEl.textContent = stats.predictedLength > 0 ? stats.predictedLength : "--";
-            
+
             if (stats.predictedLength === 0) {
-                 lenFeedback.textContent = "Daten sammeln...";
-                 lenFeedback.className = "text-[10px] font-bold mt-1 text-slate-400 bg-white/80 inline-block px-2 py-0.5 rounded-lg";
+                lenFeedback.textContent = "Daten sammeln...";
+                lenFeedback.className = "text-[10px] font-bold mt-1 text-slate-400 bg-white/80 inline-block px-2 py-0.5 rounded-lg";
             } else if (stats.predictedLength < 21) {
-                 lenFeedback.textContent = "Kurz (<21)";
-                 lenFeedback.className = "text-[10px] font-bold mt-1 text-red-600 bg-red-50/90 inline-block px-2 py-0.5 rounded-lg border border-red-100";
+                lenFeedback.textContent = "Kurz (<21)";
+                lenFeedback.className = "text-[10px] font-bold mt-1 text-red-600 bg-red-50/90 inline-block px-2 py-0.5 rounded-lg border border-red-100";
             } else if (stats.predictedLength > 35) {
-                 lenFeedback.textContent = "Lang (>35)";
-                 lenFeedback.className = "text-[10px] font-bold mt-1 text-orange-600 bg-orange-50/90 inline-block px-2 py-0.5 rounded-lg border border-orange-100";
+                lenFeedback.textContent = "Lang (>35)";
+                lenFeedback.className = "text-[10px] font-bold mt-1 text-orange-600 bg-orange-50/90 inline-block px-2 py-0.5 rounded-lg border border-orange-100";
             } else {
-                 const methodText = stats.method === 'median' ? ' (Median)' : ' (Trend)';
-                 if (stats.method.includes("stabilisiert")) {
-                     lenFeedback.textContent = "Abweichung ignoriert";
-                     lenFeedback.className = "text-[10px] font-bold mt-1 text-blue-600 bg-blue-50/80 inline-block px-2 py-0.5 rounded-lg";
-                 } else {
-                     lenFeedback.textContent = "Normal" + methodText;
-                     lenFeedback.className = "text-[10px] font-bold mt-1 text-green-600 bg-green-50/80 inline-block px-2 py-0.5 rounded-lg";
-                 }
+                const methodText = stats.method === 'median' ? ' (Median)' : ' (Trend)';
+                if (stats.method.includes("stabilisiert")) {
+                    lenFeedback.textContent = "Abweichung ignoriert";
+                    lenFeedback.className = "text-[10px] font-bold mt-1 text-blue-600 bg-blue-50/80 inline-block px-2 py-0.5 rounded-lg";
+                } else {
+                    lenFeedback.textContent = "Normal" + methodText;
+                    lenFeedback.className = "text-[10px] font-bold mt-1 text-green-600 bg-green-50/80 inline-block px-2 py-0.5 rounded-lg";
+                }
             }
 
             if (stats.variability > 4) {
@@ -1108,9 +1405,9 @@
 
             const durEl = document.getElementById('stat-avg-duration');
             const durFeedback = document.getElementById('stat-duration-feedback');
-            
+
             durEl.textContent = stats.medianDuration > 0 ? stats.medianDuration : "--";
-            
+
             if (stats.medianDuration === 0) {
                 durFeedback.textContent = "Daten sammeln...";
                 durFeedback.className = "text-[10px] font-bold mt-1 text-slate-400 bg-white/80 inline-block px-2 py-0.5 rounded-lg";
@@ -1119,7 +1416,7 @@
                 durFeedback.className = "text-[10px] font-bold mt-1 text-orange-600 bg-orange-50/90 inline-block px-2 py-0.5 rounded-lg";
             } else if (stats.medianDuration < 2) {
                 durFeedback.textContent = "Kurz (<2)";
-                 durFeedback.className = "text-[10px] font-bold mt-1 text-orange-600 bg-orange-50/90 inline-block px-2 py-0.5 rounded-lg";
+                durFeedback.className = "text-[10px] font-bold mt-1 text-orange-600 bg-orange-50/90 inline-block px-2 py-0.5 rounded-lg";
             } else {
                 durFeedback.textContent = "Normal (2-7)";
                 durFeedback.className = "text-[10px] font-bold mt-1 text-green-600 bg-green-50/80 inline-block px-2 py-0.5 rounded-lg";
@@ -1132,7 +1429,7 @@
             const grid = document.getElementById('calendar-grid');
             const monthDisplay = document.getElementById('current-month-display');
             grid.innerHTML = '';
-            
+
             const options = { month: 'long', year: 'numeric' };
             monthDisplay.textContent = currentDate.toLocaleDateString('de-DE', options);
 
@@ -1140,7 +1437,7 @@
             const month = currentDate.getMonth();
             const firstDayOfMonth = new Date(year, month, 1);
             const daysInMonth = new Date(year, month + 1, 0).getDate();
-            
+
             let startDay = firstDayOfMonth.getDay() - 1;
             if (startDay === -1) startDay = 6;
 
@@ -1153,13 +1450,13 @@
                 const usedDur = (stats.medianDuration > 0) ? stats.medianDuration : 5;
 
                 let lastStartObj = new Date(stats.lastStart);
-                for(let i=1; i<=3; i++) {
+                for (let i = 1; i <= 3; i++) {
                     let nextStart = new Date(lastStartObj);
                     nextStart.setDate(nextStart.getDate() + (usedLen * i));
-                    
-                    for(let d=0; d < usedDur; d++){
+
+                    for (let d = 0; d < usedDur; d++) {
                         let p = new Date(nextStart);
-                        p.setDate(p.getDate()+d);
+                        p.setDate(p.getDate() + d);
                         predictedDates.push(formatDateKey(p));
                     }
                     let ov = new Date(nextStart);
@@ -1180,12 +1477,12 @@
                 const cell = document.createElement('div');
                 cell.className = 'day-cell';
                 cell.textContent = i;
-                
+
                 if (dateKey === todayKey) cell.classList.add('is-today');
                 if (periodData[dateKey]) cell.classList.add('is-period');
                 else if (predictedDates.includes(dateKey)) cell.classList.add('is-predicted');
                 else if (ovulationDates.includes(dateKey)) cell.classList.add('is-ovulation');
-                
+
                 if (symptomData[dateKey] && (symptomData[dateKey].mood || (symptomData[dateKey].body && symptomData[dateKey].body.length > 0))) {
                     cell.classList.add('has-symptoms');
                 }
@@ -1208,11 +1505,12 @@
         }
 
         window.addEventListener('resize', () => {
-             const stats = getCycleStats();
-             renderChart(stats.cycles);
+            const stats = getCycleStats();
+            renderChart(stats.cycles);
         });
 
         init();
     </script>
 </body>
+
 </html>
