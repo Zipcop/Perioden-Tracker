@@ -3,7 +3,8 @@
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport"
+        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Zyklus-Tracker</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -16,24 +17,7 @@
         :root {
             /* Standard Werte - werden durch JS bei Start überschrieben */
             --bg-gradient: linear-gradient(135deg, #fbcfe8 0%, #e11d48 100%);
-            --header-gradient: linear-gradient(to right, #ec4899, #fb923c);
-            --primary-color: #ec4899;
-            --text-primary: #be185d;
-
-            /* Automatische Mischung für helle Hintergründe */
-            --primary-light: color-mix(in srgb, var(--primary-color), white 85%);
-            --period-bg: #ff758c;
-            --ovulation-color: #a855f7;
-            --text-accent: #be123c;
-            --chart-color: #ec4899;
-
-            /* Design Variablen für Dark/Light Mode */
-            --glass-bg: rgba(255, 255, 255, 0.92);
-            --glass-border: rgba(255, 255, 255, 0.6);
-            --day-bg: rgba(255, 255, 255, 0.75);
-            --day-text: #334155;
-            --day-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
-            --shape-fill: rgba(255, 255, 255, 0.92);
+            /* ... */
         }
 
         html {
@@ -41,6 +25,8 @@
             width: 100%;
             overflow-x: hidden;
             -webkit-tap-highlight-color: transparent;
+            background-color: #fbcfe8;
+            /* Fallback für Overscroll/Notch */
         }
 
         body {
@@ -324,6 +310,7 @@
 
         input[type="color"] {
             -webkit-appearance: none;
+            appearance: none;
             border: none;
             padding: 0;
             overflow: hidden;
