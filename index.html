@@ -25,29 +25,33 @@
             width: 100%;
             overflow-x: hidden;
             -webkit-tap-highlight-color: transparent;
-            background-color: #fbcfe8;
-            /* Fallback für Overscroll/Notch */
+            background-color: var(--primary-color);
+            margin: 0;
+            padding: 0;
         }
 
         body {
             font-family: 'Quicksand', sans-serif;
-            background: transparent;
+            background: var(--primary-color);
             min-height: 100vh;
             -webkit-user-select: none;
             user-select: none;
             overscroll-behavior-y: none;
             transition: color 0.5s ease;
             position: relative;
+            margin: 0;
+            padding: 0;
         }
 
         /* Fester Hintergrund-Layer */
         #app-background {
             position: fixed;
-            top: 0;
+            top: -10vh;
             left: 0;
             width: 100vw;
-            height: 100vh;
-            z-index: -50;
+            height: 120vh;
+            /* Extra size to cover bounces */
+            z-index: -1;
             background: var(--bg-gradient);
             transition: background 0.5s ease;
             pointer-events: none;
