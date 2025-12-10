@@ -87,7 +87,8 @@
             border-radius: 50%;
             cursor: pointer;
             transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-            font-size: 0.95rem;
+            font-size: 1.2rem;
+            /* Increased from 0.95rem */
             position: relative;
             font-weight: 700;
             color: var(--day-text);
@@ -100,10 +101,30 @@
             transform: scale(0.95);
         }
 
+        /* New Tap Animation Class */
+        .tap-animate {
+            animation: tapPulse 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        @keyframes tapPulse {
+            0% {
+                transform: scale(1);
+            }
+
+            50% {
+                transform: scale(0.85);
+            }
+
+            100% {
+                transform: scale(1);
+            }
+        }
+
         .day-cell:hover:not(.empty) {
             background-color: var(--glass-bg);
             filter: brightness(1.1);
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+            /* Increased shadow */
             z-index: 10;
         }
 
@@ -371,11 +392,11 @@
 
     <!-- MAIN CARD -->
     <div
-        class="glass-panel w-full max-w-[500px] rounded-[2.5rem] shadow-2xl shadow-black/10 overflow-hidden fade-in mb-8 relative">
+        class="glass-panel w-full max-w-[600px] rounded-[2.5rem] shadow-2xl shadow-black/10 overflow-hidden fade-in mb-8 relative">
         <div class="relative header-bg pt-16 pb-14 px-6 text-white text-center">
             <h1
-                class="text-2xl md:text-3xl font-bold mb-1 tracking-tight flex items-center justify-center drop-shadow-sm">
-                <span class="mr-2 text-3xl">🩸</span>
+                class="text-3xl md:text-4xl font-bold mb-1 tracking-tight flex items-center justify-center drop-shadow-sm">
+                <span class="mr-2 text-4xl">🩸</span>
                 Zyklus Tracker
             </h1>
             <div id="cycle-status"
@@ -386,13 +407,13 @@
                 class="privacy-blur inline-block mt-3 bg-white/20 backdrop-blur-md border border-white/40 rounded-full px-5 py-1.5 text-sm font-bold text-white shadow-lg hidden">
                 Phase</div>
 
-            <div class="absolute top-4 right-4 flex gap-2">
+            <div class="absolute top-4 right-4 flex gap-3">
                 <button onclick="togglePrivacy()" id="privacy-btn"
-                    class="bg-white/10 hover:bg-white/30 rounded-full p-2 w-10 h-10 transition backdrop-blur-sm flex items-center justify-center"><i
-                        class="fa-regular fa-eye text-white"></i></button>
+                    class="bg-white/10 hover:bg-white/30 rounded-full p-3 w-12 h-12 transition backdrop-blur-sm flex items-center justify-center"><i
+                        class="fa-regular fa-eye text-white text-xl"></i></button>
                 <button onclick="toggleSettings()"
-                    class="bg-white/10 hover:bg-white/30 rounded-full p-2 w-10 h-10 transition backdrop-blur-sm flex items-center justify-center"><i
-                        class="fa-solid fa-gear text-white"></i></button>
+                    class="bg-white/10 hover:bg-white/30 rounded-full p-3 w-12 h-12 transition backdrop-blur-sm flex items-center justify-center"><i
+                        class="fa-solid fa-gear text-white text-xl"></i></button>
             </div>
 
             <div class="custom-shape-divider-bottom"><svg data-name="Layer 1" xmlns="http://www.w3.org/2000/svg"
@@ -405,32 +426,32 @@
 
         <!-- Info Box -->
         <div id="phase-info-box"
-            class="glass-panel mx-6 mt-4 p-4 rounded-2xl flex items-start gap-3 hidden shadow-sm transition-all duration-500">
-            <div class="bg-white/90 dark:bg-slate-700 p-2.5 rounded-full shadow-inner shrink-0 text-xl"
+            class="glass-panel mx-6 mt-6 p-6 rounded-3xl flex items-start gap-4 hidden shadow-sm transition-all duration-500">
+            <div class="bg-white/90 dark:bg-slate-700 p-3.5 rounded-full shadow-inner shrink-0 text-2xl"
                 style="color: var(--text-primary)"><i class="fa-solid fa-wand-magic-sparkles"></i></div>
             <div class="privacy-blur transition-all duration-300">
-                <h3 class="font-bold text-sm mb-1" style="color: var(--text-primary)" id="phase-title">Tipps für
+                <h3 class="font-bold text-lg mb-2" style="color: var(--text-primary)" id="phase-title">Tipps für
                     dich
                 </h3>
-                <p class="text-xs leading-relaxed font-medium" style="color: var(--day-text)" id="phase-desc">Lade
+                <p class="text-sm leading-relaxed font-medium" style="color: var(--day-text)" id="phase-desc">Lade
                     Tipps...</p>
             </div>
         </div>
 
         <!-- Calendar Navigation -->
-        <div class="flex justify-between items-center px-6 py-4 mt-2">
+        <div class="flex justify-between items-center px-8 py-6 mt-2">
             <button onclick="changeMonth(-1)"
-                class="w-10 h-10 flex items-center justify-center bg-white/50 shadow-sm rounded-full hover:bg-white transition"
+                class="w-12 h-12 flex items-center justify-center bg-white/50 shadow-sm rounded-full hover:bg-white transition text-lg"
                 style="color: var(--day-text)"><i class="fa-solid fa-chevron-left"></i></button>
-            <h2 id="current-month-display" class="text-xl font-extrabold capitalize tracking-tight"
+            <h2 id="current-month-display" class="text-2xl font-extrabold capitalize tracking-tight"
                 style="color: var(--day-text)"></h2>
             <button onclick="changeMonth(1)"
-                class="w-10 h-10 flex items-center justify-center bg-white/50 shadow-sm rounded-full hover:bg-white transition"
+                class="w-12 h-12 flex items-center justify-center bg-white/50 shadow-sm rounded-full hover:bg-white transition text-lg"
                 style="color: var(--day-text)"><i class="fa-solid fa-chevron-right"></i></button>
         </div>
 
         <!-- Calendar Grid -->
-        <div class="grid grid-cols-7 gap-2 px-6 mb-3 text-center text-xs font-extrabold uppercase tracking-widest"
+        <div class="grid grid-cols-7 gap-2 px-6 mb-4 text-center text-sm font-extrabold uppercase tracking-widest"
             style="color: var(--text-primary)">
             <div>Mo</div>
             <div>Di</div>
@@ -456,7 +477,7 @@
 
     <!-- ANALYSIS SECTION -->
     <div id="analysis-section"
-        class="glass-panel w-full max-w-[500px] rounded-[2.5rem] shadow-xl shadow-indigo-900/5 p-6 mb-8 fade-in relative overflow-hidden">
+        class="glass-panel w-full max-w-[600px] rounded-[2.5rem] shadow-xl shadow-indigo-900/5 p-8 mb-8 fade-in relative overflow-hidden">
         <h2 class="text-xl font-extrabold mb-6 flex items-center" style="color: var(--day-text)">
             <span class="p-2.5 rounded-xl mr-3 shadow-sm bg-white/50" style="color: var(--text-primary)"><i
                     class="fa-solid fa-chart-line"></i></span>
@@ -1489,6 +1510,12 @@
                 cell.addEventListener('touchstart', (e) => { isScrolling = false; startPress(dateKey); });
                 cell.addEventListener('touchmove', (e) => { isScrolling = true; cancelPress(); });
                 cell.addEventListener('touchend', (e) => { e.preventDefault(); handleRelease(dateKey); });
+                cell.addEventListener('click', function () {
+                    // Tap Animation Trigger
+                    this.classList.remove('tap-animate');
+                    void this.offsetWidth; // trigger reflow
+                    this.classList.add('tap-animate');
+                });
                 cell.oncontextmenu = (e) => { e.preventDefault(); e.stopPropagation(); return false; };
 
                 grid.appendChild(cell);
