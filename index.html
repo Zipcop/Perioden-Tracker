@@ -258,7 +258,6 @@
             <p id="top-date" class="text-lg font-bold">Lade...</p>
         </div>
         <div class="flex gap-4">
-            <button onclick="togglePrivacy()" class="w-10 h-10 glass flex items-center justify-center"><i class="fa-solid fa-eye text-sm"></i></button>
             <button onclick="switchView('settings')" class="w-10 h-10 glass flex items-center justify-center"><i class="fa-solid fa-gear text-sm"></i></button>
         </div>
     </header>
@@ -271,6 +270,7 @@
                 <div class="wheel-track-css"></div>
                 <div id="wheel-css-prog" class="wheel-progress-css" style="--p: 0"></div>
                 <div class="absolute inset-0 flex flex-col items-center justify-center text-center">
+                    <span id="dashboard-vibe" class="text-[8px] font-black uppercase tracking-[0.4em] text-primary mb-2 animate-pulse">Slay</span>
                     <span id="dashboard-day" class="text-7xl font-black tracking-tighter">--</span>
                     <span class="text-[10px] font-black uppercase tracking-[0.3em] opacity-50 mb-1">Zyklus-Tag</span>
                     <span id="dashboard-countdown" class="text-[10px] font-bold"></span>
@@ -372,13 +372,6 @@
                     <div id="ins-consistency-bar" class="w-16 h-16 rounded-full border-4 border-white/5 flex items-center justify-center text-xs font-black">--%</div>
                 </div>
 
-                <!-- Symptoms Analysis -->
-                <div class="glass p-6">
-                    <h3 class="text-xs font-black uppercase tracking-widest opacity-40 mb-4 flex items-center"><i class="fa-solid fa-chart-pie mr-2"></i> Häufigste Symptome</h3>
-                    <div id="ins-symptoms-list" class="space-y-3">
-                        <p class="text-sm opacity-30 italic">Noch keine Daten vorhanden...</p>
-                    </div>
-                </div>
 
                 <!-- History Chart replacement -->
                 <div class="glass p-6">
@@ -670,6 +663,17 @@
                 
                 document.getElementById('fluid-bg').style.background = `radial-gradient(circle at 50% 50%, ${phase.bg} 0%, #020617 100%)`;
                 document.documentElement.style.setProperty('--primary', phase.color);
+
+                // Vibes Logic
+                const vibes = [
+                    "Slay 💅", "Boss Bitch ⚡", "Bad Bitch 🔥", "Rich Bitch 💸",
+                    "Iconic Bitch ✨", "Expensive Bitch 💎", "Cold Bitch ❄️",
+                    "Unbothered Bitch 💅", "Main Character ✨", "Main Bitch 💅",
+                    "Bitch, you got this ✨", "Bitch, please ✋", "Top Bitch 🏆",
+                    "Healthy Bitch 🍏", "Smart Bitch 🎓", "Lucky Bitch 🍀",
+                    "Iconic ✨", "Pure Power 🔥", "100% That Bitch 💯"
+                ];
+                document.getElementById('dashboard-vibe').textContent = vibes[Math.floor(Math.random() * vibes.length)];
 
                 // Countdown Logic
                 let countdownText = "";
