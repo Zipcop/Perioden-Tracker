@@ -43,6 +43,7 @@
         :root {
             --primary: #ec4899;
             --accent: #a855f7;
+            --theme-color: #ec4899;
             --bg-deep: #020617;
             --glass-bg: rgba(15, 23, 42, 0.6);
             --glass-border: rgba(255, 255, 255, 0.1);
@@ -153,12 +154,12 @@
             position: absolute;
             inset: 0;
             border-radius: 50%;
-            background: conic-gradient(from 0deg, var(--primary), var(--accent) calc(var(--p) * 1.1%), transparent 0);
+            background: conic-gradient(from 0deg, var(--theme-color), var(--accent) calc(var(--p) * 1.1%), transparent 0);
             -webkit-mask: radial-gradient(transparent 63%, black 64.5%);
             mask: radial-gradient(transparent 63%, black 64.5%);
             transform: rotate(-90deg);
             transition: --p 1s cubic-bezier(0.4, 0, 0.2, 1);
-            filter: drop-shadow(0 0 15px var(--primary));
+            filter: drop-shadow(0 0 15px var(--theme-color));
         }
 
         .wheel-track-css {
@@ -200,8 +201,23 @@
         }
 
         .cal-day.active { background: var(--primary); color: white; border: none; box-shadow: 0 0 15px var(--primary); }
-        .cal-day.predicted { border: 1px dashed var(--primary); color: var(--primary); }
-        .cal-day.ovulation { border: 1px solid var(--accent); color: var(--accent); }
+        .cal-day.predicted { border: 1px dashed var(--primary); color: var(--primary); opacity: 0.7; }
+        .cal-day.ovulation { 
+            position: relative;
+            border: 1.5px solid var(--accent);
+            color: var(--accent);
+        }
+        .cal-day.ovulation::after {
+            content: '';
+            position: absolute;
+            bottom: 4px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 4px; height: 4px;
+            background: var(--accent);
+            border-radius: 50%;
+            box-shadow: 0 0 8px var(--accent);
+        }
         .cal-day.today { border: 2px solid #fff; }
 
         /* Day Modal / Bottom Sheet */
@@ -388,9 +404,9 @@
             <div class="glass p-6 blur-content">
                 <h3 class="text-xs font-black uppercase tracking-widest opacity-40 mb-4">Legende</h3>
                 <div class="flex flex-wrap gap-4 text-[10px] font-black uppercase">
-                    <div class="flex items-center gap-2"><span class="w-3 h-3 rounded-full bg-pink-500"></span> Periode</div>
-                    <div class="flex items-center gap-2"><span class="w-3 h-3 rounded-full border border-dashed border-pink-500"></span> Prognose</div>
-                    <div class="flex items-center gap-2"><span class="w-3 h-3 rounded-full border border-purple-500"></span> Eisprung</div>
+                    <div class="flex items-center gap-2"><span class="w-3 h-3 rounded-full" style="background: var(--primary)"></span> Periode</div>
+                    <div class="flex items-center gap-2"><span class="w-3 h-3 rounded-full border border-dashed" style="border-color: var(--primary)"></span> Prognose</div>
+                    <div class="flex items-center gap-2"><span class="w-3 h-3 rounded-full border" style="border-color: var(--accent); position: relative;"><span style="position: absolute; bottom: 1px; left: 50%; transform: translateX(-50%); width: 2px; height: 2px; background: var(--accent); border-radius: 50%;"></span></span> Eisprung</div>
                 </div>
             </div>
         </section>
@@ -739,7 +755,7 @@
                 document.getElementById('dashboard-tips').innerHTML = phase.tips;
                 
                 document.getElementById('fluid-bg').style.background = `radial-gradient(circle at 50% 50%, ${phase.bg} 0%, #020617 100%)`;
-                document.documentElement.style.setProperty('--primary', phase.color);
+                document.documentElement.style.setProperty('--theme-color', phase.color);
 
                 // Vibes Logic
                 const vibes = [
@@ -830,13 +846,22 @@
             if(stats.lastStart) {
                 const len = stats.predictedLen || settings.cycleLength;
                 const dur = stats.avgDuration || 5;
-                let nextStart = new Date(stats.lastStart);
-                for(let i=1; i<=2; i++) {
-                    let d = new Date(nextStart); d.setDate(d.getDate() + (len * i));
+                
+                // Forecasts for next 3 cycles
+                for(let i=0; i<=3; i++) {
+                    let nextStart = new Date(stats.lastStart);
+                    nextStart.setDate(nextStart.getDate() + (len * i));
+                    
+                    // Period Days
                     for(let j=0; j<dur; j++) {
-                        let f = new Date(d); f.setDate(f.getDate() + j);
-                        forecasts.push(formatDateKey(f));
+                        let d = new Date(nextStart); d.setDate(d.getDate() + j);
+                        forecasts.push({ key: formatDateKey(d), type: 'period' });
                     }
+                    
+                    // Ovulation Day (approx. 14 days before next start)
+                    let ovDate = new Date(nextStart);
+                    ovDate.setDate(ovDate.getDate() - 14);
+                    forecasts.push({ key: formatDateKey(ovDate), type: 'ovulation' });
                 }
             }
 
@@ -853,7 +878,11 @@
                 cell.className = `cal-day cursor-pointer text-sm ${isPeriod ? 'active' : ''} ${isToday ? 'today' : ''} ${isSelected ? 'ring-2 ring-accent' : ''}`;
                 cell.textContent = i;
                 
-                if(!isPeriod && forecasts.includes(key)) cell.classList.add('predicted');
+                const dayForecasts = forecasts.filter(f => f.key === key);
+                if(!isPeriod) {
+                    if(dayForecasts.find(f => f.type === 'period')) cell.classList.add('predicted');
+                    if(dayForecasts.find(f => f.type === 'ovulation')) cell.classList.add('ovulation');
+                }
                 
                 cell.onclick = (e) => {
                     handleDayClick(key);
