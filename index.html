@@ -1,1539 +1,896 @@
 <!DOCTYPE html>
-<html lang="de">
+<html lang="de" class="dark">
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport"
-        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Zyklus-Tracker</title>
-    <!-- Tailwind CSS -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="description" content="Lunar Flow - Dein ästhetischer Zyklus-Begleiter. Sicher, lokal und wunderschön.">
+    <title>Lunar Flow | Zyklus Tracker</title>
+    
+    <!-- CDNs -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- FontAwesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🌙</text></svg>">
+
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['Outfit', 'sans-serif'] },
+                    animation: {
+                        'pulse-slow': 'pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                        'float': 'float 6s ease-in-out infinite',
+                    },
+                    keyframes: {
+                        float: {
+                            '0%, 100%': { transform: 'translateY(0)' },
+                            '50%': { transform: 'translateY(-20px)' },
+                        }
+                    }
+                }
+            }
+        }
+    </script>
 
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Quicksand:wght@500;600;700;800&display=swap');
-
         :root {
-            /* Standard Werte - werden durch JS bei Start überschrieben */
-            --bg-gradient: linear-gradient(135deg, #fbcfe8 0%, #e11d48 100%);
-            /* ... */
-        }
-
-        html {
-            height: 100%;
-            width: 100%;
-            touch-action: manipulation;
-            -webkit-tap-highlight-color: transparent;
-            background-color: var(--primary-color);
-            margin: 0;
-            padding: 0;
+            --primary: #ec4899;
+            --accent: #a855f7;
+            --bg-deep: #020617;
+            --glass-bg: rgba(15, 23, 42, 0.6);
+            --glass-border: rgba(255, 255, 255, 0.1);
         }
 
         body {
-            font-family: 'Quicksand', sans-serif;
-            background: var(--primary-color);
-            min-height: 100vh;
-            -webkit-user-select: none;
+            background-color: var(--bg-deep);
+            color: #f8fafc;
+            overflow-x: hidden;
+            -webkit-tap-highlight-color: transparent;
             user-select: none;
-            transition: color 0.5s ease;
-            position: relative;
-            margin: 0;
-            padding: 0;
-            overscroll-behavior-y: none;
-        }
-
-        /* Fester Hintergrund-Layer */
-        #app-background {
-            position: fixed;
-            top: -10vh;
-            left: 0;
-            width: 100vw;
-            height: 120vh;
-            /* Extra size to cover bounces */
-            z-index: -1;
-            background: var(--bg-gradient);
-            transition: background 0.5s ease;
-            pointer-events: none;
-        }
-
-        /* Glassmorphism Logic */
-        .glass-panel {
-            background: var(--glass-bg);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            border: 1px solid var(--glass-border);
-            transition: background-color 0.5s ease, border-color 0.5s ease;
-        }
-
-        .header-bg {
-            background: var(--header-gradient);
-            transition: background 0.5s ease;
-        }
-
-        /* Calendar Grid Logic */
-        .calendar-grid {
-            display: grid;
-            grid-template-columns: repeat(7, 1fr);
-            gap: 0.5rem;
-        }
-
-        .day-cell {
-            aspect-ratio: 1;
+            padding-top: calc(1.5rem + env(safe-area-inset-top));
+            padding-bottom: calc(7rem + env(safe-area-inset-bottom));
+            min-height: 100vh;
             display: flex;
             flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            border-radius: 50%;
-            cursor: pointer;
-            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-            font-size: 1.2rem;
-            /* Increased from 0.95rem */
-            position: relative;
-            font-weight: 700;
-            color: var(--day-text);
-            background-color: var(--day-bg);
-            box-shadow: var(--day-shadow);
-            touch-action: manipulation;
         }
 
-        .day-cell:active {
-            transform: scale(0.95);
+        /* Fluid Background */
+        #fluid-bg {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            z-index: -1;
+            background: radial-gradient(circle at 50% 50%, #1e1b4b 0%, #020617 100%);
+            transition: all 1.5s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
-        /* New Tap Animation Class */
-        .tap-animate {
-            animation: tapPulse 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-        }
-
-        @keyframes tapPulse {
-            0% {
-                transform: scale(1);
-            }
-
-            50% {
-                transform: scale(0.85);
-            }
-
-            100% {
-                transform: scale(1);
-            }
-        }
-
-        .day-cell:hover:not(.empty) {
-            background-color: var(--glass-bg);
-            filter: brightness(1.1);
-            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
-            /* Increased shadow */
-            z-index: 10;
-        }
-
-        /* Status Classes */
-        .is-period {
-            background: var(--period-bg) !important;
-            color: white !important;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
-            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
-        }
-
-        .is-predicted {
-            background-color: var(--day-bg) !important;
-            color: var(--text-accent) !important;
-            border: 2px dashed var(--primary-color);
-            opacity: 1;
-        }
-
-        .is-ovulation {
-            border: 2px solid var(--ovulation-color);
-            box-shadow: 0 0 10px color-mix(in srgb, var(--ovulation-color), transparent 70%);
-            background-color: var(--day-bg);
-            color: var(--ovulation-color);
-        }
-
-        .is-today {
-            color: var(--text-accent);
-            font-weight: 900;
-            position: relative;
-            background-color: var(--day-bg) !important;
-            border: 2.5px solid var(--text-accent);
-        }
-
-        /* FIX: Spezifischer Style für Heute + Periode */
-        /* Damit wird der weiße Hintergrund von .is-today überschrieben */
-        .is-period.is-today {
-            background: var(--period-bg) !important;
-            color: white !important;
-            border-color: white !important;
-            /* Weißer Rand für besseren Kontrast zur Farbe */
-            box-shadow: 0 0 15px rgba(0, 0, 0, 0.15);
-        }
-
-        .is-today::after {
-            content: '';
+        .blob {
             position: absolute;
-            top: -5px;
-            left: -5px;
-            right: -5px;
-            bottom: -5px;
+            width: 600px; height: 600px;
+            background: linear-gradient(to right, var(--primary), var(--accent));
+            filter: blur(120px);
+            opacity: 0.15;
             border-radius: 50%;
-            border: 2px solid var(--text-accent);
-            animation: pulse-ring 2s cubic-bezier(0.215, 0.61, 0.355, 1) infinite;
+            animation: move 20s infinite alternate;
         }
 
-        /* FIX: Pulse Ring Farbe anpassen wenn Periode heute ist */
-        .is-period.is-today::after {
-            border-color: white !important;
-            opacity: 0.5;
+        @keyframes move {
+            from { transform: translate(-10%, -10%) scale(1); }
+            to { transform: translate(20%, 20%) scale(1.2); }
         }
 
-        @keyframes pulse-ring {
-            0% {
-                transform: scale(0.8);
-                opacity: 0;
-            }
-
-            50% {
-                opacity: 0.5;
-            }
-
-            100% {
-                transform: scale(1.4);
-                opacity: 0;
-            }
-        }
-
-        .has-symptoms::before {
-            content: '';
-            position: absolute;
-            bottom: 4px;
-            width: 5px;
-            height: 5px;
-            background-color: var(--primary-color);
-            border-radius: 50%;
-        }
-
-        .is-period.has-symptoms::before {
-            background-color: white;
-            border: none;
-        }
-
-        .empty {
-            cursor: default;
-            visibility: hidden;
-            pointer-events: none;
-        }
-
-        .fade-in {
-            animation: fadeIn 0.8s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-
-        @keyframes fadeIn {
-            from {
-                opacity: 0;
-                transform: translateY(30px);
-            }
-
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        /* Privacy Mode */
-        body.privacy-mode .privacy-blur {
-            filter: blur(6px);
-            user-select: none;
-        }
-
-        /* SVG Chart Styles */
-        .chart-line {
-            fill: none;
-            stroke: var(--chart-color);
-            stroke-width: 3;
-            stroke-linecap: round;
-            stroke-linejoin: round;
-        }
-
-        .chart-dot {
-            fill: var(--day-bg);
-            stroke: var(--chart-color);
-            stroke-width: 2;
-        }
-
-        .chart-grid {
-            stroke: var(--glass-border);
-            stroke-width: 1;
-            stroke-dasharray: 4;
-        }
-
-        /* Header Wave Shape */
-        .custom-shape-divider-bottom {
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            width: 100%;
-            overflow: hidden;
-            line-height: 0;
-            transform: rotate(180deg);
-        }
-
-        .custom-shape-divider-bottom svg {
-            position: relative;
-            display: block;
-            width: calc(136% + 1.3px);
-            height: 50px;
-        }
-
-        .custom-shape-divider-bottom .shape-fill {
-            fill: var(--shape-fill);
-            transition: fill 0.5s ease;
-        }
-
-        /* Symptom Buttons */
-        .symptom-btn {
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            opacity: 1;
-            transform: scale(1);
-            background-color: var(--day-bg);
-            border-color: var(--glass-border);
-            color: var(--day-text);
-        }
-
-        .symptom-wrapper:hover .symptom-btn {
-            border-color: var(--primary-color);
-        }
-
-        .symptom-btn.active {
-            opacity: 1;
-            transform: scale(1.1);
-            border-color: var(--primary-color) !important;
-            background-color: color-mix(in srgb, var(--primary-color), transparent 85%) !important;
-            color: var(--text-accent);
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-        }
-
-        .symptom-wrapper.selected span {
-            color: var(--text-accent);
-            font-weight: 800;
-        }
-
-        /* Color Inputs */
-        .color-picker-wrapper {
-            position: relative;
-            display: flex;
-            align-items: center;
-            background: var(--day-bg);
+        /* Glassmorphism */
+        .glass {
+            background: var(--glass-bg);
+            backdrop-filter: blur(25px);
+            -webkit-backdrop-filter: blur(25px);
             border: 1px solid var(--glass-border);
+            border-radius: 2rem;
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 0px; background: transparent; }
+
+        /* Navigation Dock */
+        .nav-dock {
+            position: fixed;
+            bottom: calc(1.5rem + env(safe-area-inset-bottom));
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(15, 23, 42, 0.85);
+            backdrop-filter: blur(25px);
+            -webkit-backdrop-filter: blur(25px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 0.6rem;
+            border-radius: 3rem;
+            display: flex; gap: 1.25rem; z-index: 100;
+            box-shadow: 0 25px 50px rgba(0,0,0,0.6);
+            width: fit-content; max-width: 90vw;
+        }
+
+        /* Toggles */
+        .dot {
+            width: 1rem; height: 1rem;
+            background: white; border-radius: 50%;
+            transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            margin: 0.25rem;
+        }
+        .toggle-track.active .dot { transform: translateX(1.5rem); }
+        .toggle-track.active { background: var(--primary) !important; }
+
+        .nav-item {
+            width: 3.5rem; height: 3.5rem;
+            display: flex; align-items: center; justify-content: center;
+            border-radius: 2rem;
+            color: rgba(255,255,255,0.4);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            font-size: 1.25rem;
+        }
+
+        .nav-item.active {
+            background: var(--primary);
+            color: white;
+            box-shadow: 0 0 20px var(--primary);
+            transform: scale(1.1) translateY(-5px);
+        }
+
+        /* Lunar Wheel */
+        .lunar-wheel {
+            position: relative;
+            width: min(80vw, 300px);
+            height: min(80vw, 300px);
+            margin: 2rem auto 3.5rem;
+            display: flex; align-items: center; justify-content: center;
+        }
+
+        .wheel-progress-css {
+            position: absolute;
+            inset: 0;
+            border-radius: 50%;
+            background: conic-gradient(from 0deg, var(--primary), var(--accent) calc(var(--p) * 1.1%), transparent 0);
+            -webkit-mask: radial-gradient(transparent 63%, black 64.5%);
+            mask: radial-gradient(transparent 63%, black 64.5%);
+            transform: rotate(-90deg);
+            transition: --p 1s cubic-bezier(0.4, 0, 0.2, 1);
+            filter: drop-shadow(0 0 15px var(--primary));
+        }
+
+        .wheel-track-css {
+            position: absolute;
+            inset: 0;
+            border-radius: 50%;
+            border: 12px solid rgba(255,255,255,0.03);
+        }
+
+        @property --p {
+            syntax: '<number>';
+            inherits: true;
+            initial-value: 0;
+        }
+
+        /* View Transitions */
+        .view {
+            display: none;
+            animation: view-in 0.6s cubic-bezier(0.23, 1, 0.32, 1) forwards;
+        }
+
+        .view.active { display: block; }
+
+        @keyframes view-in {
+            from { opacity: 0; transform: translateY(20px) scale(0.98); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+
+        /* Calendar Grid */
+        .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 0.5rem; }
+        .cal-day {
+            aspect-ratio: 1;
+            display: flex; align-items: center; justify-content: center;
             border-radius: 1rem;
-            padding: 0.75rem;
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(255,255,255,0.05);
+            font-weight: 700;
             transition: all 0.2s;
         }
 
-        .color-picker-wrapper:hover {
-            border-color: var(--primary-color);
+        .cal-day.active { background: var(--primary); color: white; border: none; box-shadow: 0 0 15px var(--primary); }
+        .cal-day.predicted { border: 1px dashed var(--primary); color: var(--primary); }
+        .cal-day.ovulation { border: 1px solid var(--accent); color: var(--accent); }
+        .cal-day.today { border: 2px solid #fff; }
+
+        /* Day Modal / Bottom Sheet */
+        #day-modal {
+            display: none;
+            position: fixed;
+            inset: 0;
+            z-index: 200;
+            align-items: flex-end;
+            justify-content: center;
         }
 
-        input[type="color"] {
-            -webkit-appearance: none;
-            appearance: none;
-            border: none;
-            padding: 0;
-            overflow: hidden;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            cursor: pointer;
-            flex-shrink: 0;
+        #day-modal.active { display: flex; }
+
+        .modal-overlay {
+            position: absolute;
+            inset: 0;
+            background: rgba(0,0,0,0.6);
+            backdrop-filter: blur(10px);
+            opacity: 0;
+            transition: opacity 0.4s ease;
         }
 
-        input[type="color"]::-webkit-color-swatch-wrapper {
-            padding: 0;
+        #day-modal.active .modal-overlay { opacity: 1; }
+
+        .modal-content {
+            width: 100%;
+            max-width: 500px;
+            background: var(--glass-bg);
+            backdrop-filter: blur(40px);
+            -webkit-backdrop-filter: blur(40px);
+            border: 1px solid var(--glass-border);
+            border-radius: 2.5rem 2.5rem 0 0;
+            padding: 2.5rem;
+            transform: translateY(100%);
+            transition: transform 0.5s cubic-bezier(0.23, 1, 0.32, 1);
+            position: relative;
+            z-index: 210;
+            padding-bottom: calc(2.5rem + env(safe-area-inset-bottom));
         }
 
-        input[type="color"]::-webkit-color-swatch {
-            border: none;
-            border-radius: 50%;
-            border: 2px solid rgba(0, 0, 0, 0.1);
-        }
+        #day-modal.active .modal-content { transform: translateY(0); }
 
-        /* Toggle Switch */
-        .toggle-checkbox:checked {
-            right: 0;
-            border-color: var(--primary-color);
-        }
-
-        .toggle-checkbox:checked+.toggle-label {
-            background-color: var(--primary-color);
-        }
-
-        /* Quote Animation */
-        .quote-anim {
-            animation: fadeInQuote 1s ease-out;
-        }
-
-        @keyframes fadeInQuote {
-            from {
-                opacity: 0;
-                transform: translateY(5px);
-            }
-
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
+        @media (min-width: 640px) {
+            #day-modal { align-items: center; padding: 2rem; }
+            .modal-content { border-radius: 2.5rem; transform: scale(0.9); opacity: 0; }
+            #day-modal.active .modal-content { transform: scale(1); opacity: 1; }
         }
     </style>
 </head>
 
-<body class="flex flex-col items-center py-6 px-4 md:py-10">
+    <body class="px-5">
+    <div id="fluid-bg"><div class="blob"></div></div>
 
-    <div id="app-background"></div>
-
-    <!-- MAIN CARD -->
-    <div
-        class="glass-panel w-full max-w-[600px] rounded-[2.5rem] shadow-2xl shadow-black/10 overflow-hidden fade-in mb-8 relative">
-        <div class="relative header-bg pt-16 pb-14 px-6 text-white text-center">
-            <h1
-                class="text-3xl md:text-4xl font-bold mb-1 tracking-tight flex items-center justify-center drop-shadow-sm">
-                <span class="mr-2 text-4xl">🩸</span>
-                Zyklus Tracker
-            </h1>
-            <div id="cycle-status"
-                class="privacy-blur text-white/90 font-semibold text-lg drop-shadow-sm transition-all duration-300 min-h-[3rem] flex flex-col justify-center items-center">
-                <p>Lade Daten...</p>
-            </div>
-            <div id="phase-badge"
-                class="privacy-blur inline-block mt-3 bg-white/20 backdrop-blur-md border border-white/40 rounded-full px-5 py-1.5 text-sm font-bold text-white shadow-lg hidden">
-                Phase</div>
-
-            <div class="absolute top-4 right-4 flex gap-3">
-                <button onclick="togglePrivacy()" id="privacy-btn"
-                    class="bg-white/10 hover:bg-white/30 rounded-full p-3 w-12 h-12 transition backdrop-blur-sm flex items-center justify-center"><i
-                        class="fa-regular fa-eye text-white text-xl"></i></button>
-                <button onclick="toggleSettings()"
-                    class="bg-white/10 hover:bg-white/30 rounded-full p-3 w-12 h-12 transition backdrop-blur-sm flex items-center justify-center"><i
-                        class="fa-solid fa-gear text-white text-xl"></i></button>
-            </div>
-
-            <div class="custom-shape-divider-bottom"><svg data-name="Layer 1" xmlns="http://www.w3.org/2000/svg"
-                    viewBox="0 0 1200 120" preserveAspectRatio="none">
-                    <path
-                        d="M321.39,56.44c58-10.79,114.16-30.13,172-41.86,82.39-16.72,168.19-17.73,250.45-.39C823.78,31,906.67,72,985.66,92.83c70.05,18.48,146.53,26.09,214.34,3V0H0V27.35A600.21,600.21,0,0,0,321.39,56.44Z"
-                        class="shape-fill"></path>
-                </svg></div>
+    <!-- HEADER / TOP INFO -->
+    <header class="flex justify-between items-center mb-8">
+        <div>
+            <h1 class="text-xs font-black uppercase tracking-[0.3em] opacity-40">Lunar Flow</h1>
+            <p id="top-date" class="text-lg font-bold">Lade...</p>
         </div>
-
-        <!-- Info Box -->
-        <div id="phase-info-box"
-            class="glass-panel mx-6 mt-6 p-6 rounded-3xl flex items-start gap-4 hidden shadow-sm transition-all duration-500">
-            <div class="bg-white/90 dark:bg-slate-700 p-3.5 rounded-full shadow-inner shrink-0 text-2xl"
-                style="color: var(--text-primary)"><i class="fa-solid fa-wand-magic-sparkles"></i></div>
-            <div class="privacy-blur transition-all duration-300">
-                <h3 class="font-bold text-lg mb-2" style="color: var(--text-primary)" id="phase-title">Tipps für
-                    dich
-                </h3>
-                <p class="text-sm leading-relaxed font-medium" style="color: var(--day-text)" id="phase-desc">Lade
-                    Tipps...</p>
-            </div>
+        <div class="flex gap-4">
+            <button onclick="togglePrivacy()" class="w-10 h-10 glass flex items-center justify-center"><i class="fa-solid fa-eye text-sm"></i></button>
+            <button onclick="switchView('settings')" class="w-10 h-10 glass flex items-center justify-center"><i class="fa-solid fa-gear text-sm"></i></button>
         </div>
+    </header>
 
-        <!-- Calendar Navigation -->
-        <div class="flex justify-between items-center px-8 py-6 mt-2">
-            <button onclick="changeMonth(-1)"
-                class="w-12 h-12 flex items-center justify-center bg-white/50 shadow-sm rounded-full hover:bg-white transition text-lg"
-                style="color: var(--day-text)"><i class="fa-solid fa-chevron-left"></i></button>
-            <h2 id="current-month-display" class="text-2xl font-extrabold capitalize tracking-tight"
-                style="color: var(--day-text)"></h2>
-            <button onclick="changeMonth(1)"
-                class="w-12 h-12 flex items-center justify-center bg-white/50 shadow-sm rounded-full hover:bg-white transition text-lg"
-                style="color: var(--day-text)"><i class="fa-solid fa-chevron-right"></i></button>
-        </div>
-
-        <!-- Calendar Grid -->
-        <div class="grid grid-cols-7 gap-2 px-6 mb-4 text-center text-sm font-extrabold uppercase tracking-widest"
-            style="color: var(--text-primary)">
-            <div>Mo</div>
-            <div>Di</div>
-            <div>Mi</div>
-            <div>Do</div>
-            <div>Fr</div>
-            <div>Sa</div>
-            <div>So</div>
-        </div>
-        <div id="calendar-grid" class="calendar-grid px-6 pb-8"></div>
-
-        <!-- Legend -->
-        <div class="flex justify-center flex-wrap gap-x-6 gap-y-2 pb-6 text-xs font-bold border-t pt-6 mx-6"
-            style="color: var(--day-text); border-color: var(--glass-border)">
-            <div class="flex items-center gap-2"><span class="w-3 h-3 rounded-full block shadow-sm"
-                    style="background: var(--period-bg)"></span> Periode</div>
-            <div class="flex items-center gap-2"><span class="w-3 h-3 rounded-full block border-2 border-dashed"
-                    style="border-color: var(--primary-color); background: var(--day-bg)"></span> Prognose</div>
-            <div class="flex items-center gap-2"><span class="w-3 h-3 rounded-full border-2 block shadow-sm"
-                    style="border-color: var(--ovulation-color); background: var(--day-bg)"></span> Eisprung</div>
-        </div>
-    </div>
-
-    <!-- ANALYSIS SECTION -->
-    <div id="analysis-section"
-        class="glass-panel w-full max-w-[600px] rounded-[2.5rem] shadow-xl shadow-indigo-900/5 p-8 mb-8 fade-in relative overflow-hidden">
-        <h2 class="text-xl font-extrabold mb-6 flex items-center" style="color: var(--day-text)">
-            <span class="p-2.5 rounded-xl mr-3 shadow-sm bg-white/50" style="color: var(--text-primary)"><i
-                    class="fa-solid fa-chart-line"></i></span>
-            Analyse & Verlauf
-        </h2>
-        <div class="grid grid-cols-2 gap-4 mb-6 privacy-blur transition-all duration-300">
-            <div class="glass-panel p-4 rounded-3xl hover:border-slate-300 transition-colors shadow-sm">
-                <p class="text-[10px] uppercase font-bold tracking-wider mb-1 opacity-70"
-                    style="color: var(--day-text)">Ø Zyklus (Smart)</p>
-                <p id="stat-avg-length" class="text-2xl font-extrabold" style="color: var(--text-primary)">-- Tage
-                </p>
-                <p id="stat-length-feedback"
-                    class="text-[10px] font-bold mt-1 bg-white/50 inline-block px-2 py-0.5 rounded-lg text-slate-500">
-                    Daten sammeln...</p>
-            </div>
-            <div class="glass-panel p-4 rounded-3xl hover:border-slate-300 transition-colors shadow-sm">
-                <p class="text-[10px] uppercase font-bold tracking-wider mb-1 opacity-70"
-                    style="color: var(--day-text)">Ø Dauer</p>
-                <p id="stat-avg-duration" class="text-2xl font-extrabold" style="color: var(--text-primary)">-- Tage
-                </p>
-                <p id="stat-duration-feedback"
-                    class="text-[10px] font-bold mt-1 bg-white/50 inline-block px-2 py-0.5 rounded-lg text-slate-500">
-                    Daten sammeln...</p>
-            </div>
-        </div>
-
-        <!-- Regularity Feedback -->
-        <div id="regularity-box"
-            class="hidden bg-orange-50/80 border border-orange-200 p-4 rounded-2xl mb-4 privacy-blur">
-            <div class="flex items-start gap-3">
-                <i class="fa-solid fa-triangle-exclamation text-orange-500 mt-1"></i>
-                <div>
-                    <p class="text-xs font-bold text-orange-800">Unregelmäßiger Zyklus</p>
-                    <p id="regularity-text" class="text-[10px] text-orange-700 leading-snug mt-1">Deine Zyklen
-                        schwanken. Prognose nutzt Median für mehr Sicherheit.</p>
+    <!-- CONTENT VIEWS -->
+    <main id="view-container">
+        <!-- DASHBOARD VIEW -->
+        <section id="view-dashboard" class="view active">
+            <div class="lunar-wheel animate-float">
+                <div class="wheel-track-css"></div>
+                <div id="wheel-css-prog" class="wheel-progress-css" style="--p: 0"></div>
+                <div class="absolute inset-0 flex flex-col items-center justify-center text-center">
+                    <span id="dashboard-day" class="text-7xl font-black tracking-tighter">--</span>
+                    <span class="text-[10px] font-black uppercase tracking-[0.3em] opacity-50 mb-1">Zyklus-Tag</span>
+                    <span id="dashboard-countdown" class="text-[10px] font-bold"></span>
                 </div>
             </div>
-        </div>
 
-        <div class="glass-panel rounded-3xl p-4 shadow-inner mb-2 privacy-blur transition-all duration-300">
-            <p class="text-xs font-bold mb-3 ml-1 opacity-70" style="color: var(--day-text)">Zyklusverlauf (letzte
-                6)
-            </p>
-            <div class="w-full h-32 flex items-end justify-center relative" id="chart-container">
-                <p class="text-xs self-center opacity-50" style="color: var(--day-text)">Noch nicht genügend Daten
-                    für
-                    die Grafik.</p>
-            </div>
-        </div>
-
-        <p class="text-[10px] text-center mt-4 opacity-50" style="color: var(--day-text)">
-            <i class="fa-solid fa-shield-halved mr-1"></i> Keine Verhütungsmethode. Daten lokal gespeichert.
-        </p>
-    </div>
-
-    <!-- FOOTER -->
-    <footer class="glass-panel px-6 py-3 rounded-full mb-8 fade-in flex items-center justify-center gap-2 shadow-lg">
-        <span id="footer-quote" class="text-xs font-extrabold uppercase tracking-wider quote-anim"
-            style="color: var(--text-primary)">YOU GO GIRL</span>
-    </footer>
-
-    <!-- MODAL: Tag Details -->
-    <div id="day-modal"
-        class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/20 backdrop-blur-sm fade-in"
-        onclick="if(event.target === this) closeDayModal()">
-        <div
-            class="glass-panel rounded-[2rem] shadow-2xl w-full max-w-xs overflow-hidden transform transition-all scale-100 bg-white">
-            <div class="header-bg p-4 text-white text-center relative">
-                <h3 id="modal-date-title" class="text-lg font-bold">Details</h3>
-                <button onclick="closeDayModal()" class="absolute top-4 right-4 text-white/80 hover:text-white"><i
-                        class="fa-solid fa-xmark fa-lg"></i></button>
-            </div>
-            <div class="p-6 bg-white dark:bg-slate-800 transition-colors">
-                <div
-                    class="flex justify-between items-center mb-6 bg-slate-50 p-3 rounded-2xl border border-slate-100 dark:bg-slate-700 dark:border-slate-600">
-                    <span class="font-bold text-slate-700 dark:text-slate-200 flex items-center"><i
-                            class="fa-solid fa-droplet mr-2 text-red-400"></i>Periode?</span>
-                    <button id="modal-period-toggle" onclick="togglePeriodFromModal()"
-                        class="px-4 py-1.5 rounded-full text-sm font-bold border-2 transition-all">Nein</button>
-                </div>
-                <p class="text-xs font-bold text-slate-400 uppercase mb-3 tracking-wider">Stimmung</p>
-                <div class="flex justify-between mb-6">
-                    <button onclick="toggleSymptom('mood', 'happy')"
-                        class="symptom-btn w-12 h-12 rounded-2xl border flex items-center justify-center text-2xl"
-                        data-cat="mood" data-val="happy">😊</button>
-                    <button onclick="toggleSymptom('mood', 'neutral')"
-                        class="symptom-btn w-12 h-12 rounded-2xl border flex items-center justify-center text-2xl"
-                        data-cat="mood" data-val="neutral">😐</button>
-                    <button onclick="toggleSymptom('mood', 'sad')"
-                        class="symptom-btn w-12 h-12 rounded-2xl border flex items-center justify-center text-2xl"
-                        data-cat="mood" data-val="sad">😢</button>
-                    <button onclick="toggleSymptom('mood', 'angry')"
-                        class="symptom-btn w-12 h-12 rounded-2xl border flex items-center justify-center text-2xl"
-                        data-cat="mood" data-val="angry">😡</button>
-                </div>
-                <p class="text-xs font-bold text-slate-400 uppercase mb-3 tracking-wider">Körper</p>
-                <div class="flex justify-between gap-2">
-                    <div class="flex flex-col items-center gap-1 cursor-pointer symptom-wrapper"
-                        onclick="toggleSymptom('body', 'cramps')" data-target-val="cramps">
-                        <div class="symptom-btn w-12 h-12 rounded-2xl border flex items-center justify-center text-xl"
-                            data-cat="body" data-val="cramps">⚡</div>
-                        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-tight">Krämpfe</span>
+            <div class="grid gap-6 blur-content">
+                <div id="status-card" class="glass p-8 relative overflow-hidden">
+                    <div class="relative z-10">
+                        <div id="phase-badge" class="inline-block px-4 py-1 rounded-full text-[10px] font-black uppercase tracking-widest bg-white/10 mb-4 text-primary">Lädt Daten...</div>
+                        <h2 id="phase-name" class="text-3xl font-black mb-2">Phase</h2>
+                        <p id="phase-status" class="text-white/60 font-medium">Lade Status...</p>
                     </div>
-                    <div class="flex flex-col items-center gap-1 cursor-pointer symptom-wrapper"
-                        onclick="toggleSymptom('body', 'headache')" data-target-val="headache">
-                        <div class="symptom-btn w-12 h-12 rounded-2xl border flex items-center justify-center text-xl"
-                            data-cat="body" data-val="headache">🤕</div>
-                        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-tight">Kopf</span>
-                    </div>
-                    <div class="flex flex-col items-center gap-1 cursor-pointer symptom-wrapper"
-                        onclick="toggleSymptom('body', 'tired')" data-target-val="tired">
-                        <div class="symptom-btn w-12 h-12 rounded-2xl border flex items-center justify-center text-xl"
-                            data-cat="body" data-val="tired">💤</div>
-                        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-tight">Müde</span>
-                    </div>
-                    <div class="flex flex-col items-center gap-1 cursor-pointer symptom-wrapper"
-                        onclick="toggleSymptom('body', 'acne')" data-target-val="acne">
-                        <div class="symptom-btn w-12 h-12 rounded-2xl border flex items-center justify-center text-xl"
-                            data-cat="body" data-val="acne">🔴</div>
-                        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-tight">Haut</span>
-                    </div>
-                </div>
-            </div>
-            <div
-                class="bg-slate-50 p-4 border-t border-slate-100 flex justify-center dark:bg-slate-800 dark:border-slate-700">
-                <button onclick="closeDayModal()"
-                    class="text-sm font-bold text-slate-500 hover:text-slate-800 dark:hover:text-slate-300">Schließen</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- SETTINGS PANEL -->
-    <div id="settings-panel"
-        class="hidden fixed inset-0 z-50 bg-white/95 backdrop-blur-xl flex flex-col p-6 transition-all dark:bg-slate-900/95">
-        <div class="flex justify-between items-center mb-6 shrink-0">
-            <h3 class="font-bold text-slate-700 text-xl dark:text-white">Einstellungen</h3>
-            <button onclick="toggleSettings()"
-                class="text-sm font-bold bg-slate-800 text-white px-6 py-2 rounded-xl hover:bg-slate-700 shadow-lg dark:bg-slate-600 dark:hover:bg-slate-500">Fertig</button>
-        </div>
-
-        <div class="space-y-6 overflow-y-auto pb-20">
-            <!-- Simplified Color Picker -->
-            <div class="space-y-4">
-                <h4
-                    class="font-bold text-slate-700 border-b border-slate-200 pb-2 dark:text-slate-300 dark:border-slate-700">
-                    Design anpassen</h4>
-
-                <!-- DARK MODE TOGGLE -->
-                <div
-                    class="flex items-center justify-between bg-slate-50 dark:bg-slate-800 p-3 rounded-2xl border border-slate-200 dark:border-slate-700">
-                    <div>
-                        <span class="block text-sm font-bold text-slate-700 dark:text-slate-200">Dark Mode 🌙</span>
-                        <span class="text-xs text-slate-400">Dunkles Design aktivieren</span>
-                    </div>
-                    <div
-                        class="relative inline-block w-12 h-6 align-middle select-none transition duration-200 ease-in">
-                        <input type="checkbox" name="toggle" id="dark-mode-toggle"
-                            class="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-4 appearance-none cursor-pointer border-slate-300 dark:border-slate-600"
-                            onchange="toggleDarkMode()" />
-                        <label for="dark-mode-toggle"
-                            class="toggle-label block overflow-hidden h-6 rounded-full bg-slate-300 cursor-pointer dark:bg-slate-700"></label>
-                    </div>
+                    <div class="absolute -right-10 -bottom-10 text-[120px] opacity-10 rotate-12"><i class="fa-solid fa-moon"></i></div>
                 </div>
 
-                <div class="space-y-3">
-                    <div class="color-picker-wrapper cursor-pointer dark:bg-slate-800 dark:border-slate-700"
-                        onclick="document.getElementById('input-main-color').click()">
-                        <div class="flex-1">
-                            <label class="block text-sm font-bold text-slate-700 dark:text-slate-200">Deine
-                                Lieblingsfarbe</label>
-                            <p class="text-xs text-slate-400 mt-0.5">Bestimmt das gesamte Aussehen der App.</p>
+                <!-- Live Track Action -->
+                <div id="live-action-card" class="glass p-6 border-primary/20 hidden">
+                    <div class="flex justify-between items-center">
+                        <div>
+                            <p class="text-xs font-black uppercase tracking-widest text-primary mb-1">Periode läuft gerade</p>
+                            <p class="text-[10px] opacity-40">Tage werden automatisch gefüllt</p>
                         </div>
-                        <input type="color" id="input-main-color" value="#ec4899"
-                            onchange="updateSmartTheme(this.value)">
+                        <button onclick="stopLivePeriod()" class="bg-primary/20 hover:bg-primary/30 text-primary px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition">Jetzt Beenden</button>
                     </div>
-
-                    <div class="color-picker-wrapper cursor-pointer dark:bg-slate-800 dark:border-slate-700"
-                        onclick="document.getElementById('input-period-color').click()">
-                        <div class="flex-1">
-                            <label class="block text-sm font-bold text-slate-700 dark:text-slate-200">Farbe für
-                                Periode</label>
-                            <p class="text-xs text-slate-400 mt-0.5">Markierung im Kalender.</p>
+                </div>
+                
+                <div id="start-action-card" class="glass p-6 hover:bg-white/5 cursor-pointer transition hidden" onclick="startLivePeriod()">
+                    <div class="flex justify-between items-center">
+                        <div>
+                            <p class="text-xs font-black uppercase tracking-widest opacity-40 mb-1">Periode heute gestartet?</p>
+                            <p class="text-[10px] opacity-30 text-primary">Live-Tracking aktivieren</p>
                         </div>
-                        <input type="color" id="input-period-color" value="#ff758c"
-                            onchange="updatePeriodColor(this.value)">
-                    </div>
-
-                    <div class="color-picker-wrapper cursor-pointer dark:bg-slate-800 dark:border-slate-700"
-                        onclick="document.getElementById('input-ovulation-color').click()">
-                        <div class="flex-1">
-                            <label class="block text-sm font-bold text-slate-700 dark:text-slate-200">Farbe für
-                                Eisprung</label>
-                            <p class="text-xs text-slate-400 mt-0.5">Markierung für fruchtbare Tage.</p>
-                        </div>
-                        <input type="color" id="input-ovulation-color" value="#a855f7"
-                            onchange="updateOvulationColor(this.value)">
+                        <i class="fa-solid fa-play text-primary opacity-50"></i>
                     </div>
                 </div>
 
-                <div class="text-center pt-2">
-                    <button onclick="resetColors()"
-                        class="text-xs font-bold text-slate-400 hover:text-slate-600 underline decoration-slate-300 dark:hover:text-slate-300">Standardfarben
-                        wiederherstellen</button>
+                <div class="glass p-6">
+                    <h3 class="text-xs font-black uppercase tracking-widest opacity-40 mb-4 flex items-center"><i class="fa-solid fa-wand-magic-sparkles mr-2"></i> Tipps für dich</h3>
+                    <p id="dashboard-tips" class="text-sm font-medium leading-relaxed">...</p>
                 </div>
             </div>
+        </section>
 
-            <div class="border-t border-slate-100 pt-4 dark:border-slate-700">
-                <label class="block text-sm font-bold text-slate-600 mb-2 dark:text-slate-400">Manuelle Zykluslänge
-                    (Fallback)</label>
-                <input type="number" id="cycle-length-input" value="28"
-                    class="w-full p-3 bg-slate-50 border-0 ring-1 ring-slate-200 rounded-xl focus:ring-2 focus:ring-pink-500 outline-none font-bold dark:bg-slate-800 dark:ring-slate-700 dark:text-white"
-                    onchange="saveSettings()">
-                <p class="text-xs text-slate-400 mt-2">Wird genutzt, wenn die intelligente Analyse noch lernt.</p>
+        <!-- CALENDAR VIEW -->
+        <section id="view-calendar" class="view">
+            <div class="flex justify-between items-center mb-8">
+                <h2 id="cal-month-display" class="text-2xl font-black capitalize">Monat</h2>
+                <div class="flex gap-2">
+                    <button onclick="changeMonth(-1)" class="w-10 h-10 glass flex items-center justify-center"><i class="fa-solid fa-chevron-left"></i></button>
+                    <button onclick="changeMonth(1)" class="w-10 h-10 glass flex items-center justify-center"><i class="fa-solid fa-chevron-right"></i></button>
+                </div>
             </div>
+            
+            <div class="grid grid-cols-7 gap-2 text-center text-[10px] font-black uppercase opacity-40 mb-4">
+              <div>Mo</div><div>Di</div><div>Mi</div><div>Do</div><div>Fr</div><div>Sa</div><div>So</div>
+            </div>
+            <div id="calendar-grid" class="cal-grid blur-content mb-8"></div>
 
-            <!-- NEU: Backup Section -->
-            <div class="border-t border-slate-100 pt-4 dark:border-slate-700">
-                <h4 class="font-bold text-slate-700 mb-3 dark:text-slate-300">Backup & Daten</h4>
-                <div class="grid grid-cols-2 gap-3">
-                    <button onclick="exportData()"
-                        class="flex flex-col items-center justify-center p-3 rounded-xl bg-slate-50 hover:bg-slate-100 border border-slate-200 dark:bg-slate-800 dark:border-slate-600 dark:hover:bg-slate-700 transition">
-                        <i class="fa-solid fa-download mb-2 text-slate-500"></i>
-                        <span class="text-xs font-bold text-slate-600 dark:text-slate-300">Exportieren</span>
-                    </button>
-                    <label
-                        class="flex flex-col items-center justify-center p-3 rounded-xl bg-slate-50 hover:bg-slate-100 border border-slate-200 dark:bg-slate-800 dark:border-slate-600 dark:hover:bg-slate-700 transition cursor-pointer">
-                        <i class="fa-solid fa-upload mb-2 text-slate-500"></i>
-                        <span class="text-xs font-bold text-slate-600 dark:text-slate-300">Importieren</span>
-                        <input type="file" id="import-file" class="hidden" accept=".json" onchange="importData(this)">
+            <div class="glass p-6 blur-content">
+                <h3 class="text-xs font-black uppercase tracking-widest opacity-40 mb-4">Legende</h3>
+                <div class="flex flex-wrap gap-4 text-[10px] font-black uppercase">
+                    <div class="flex items-center gap-2"><span class="w-3 h-3 rounded-full bg-pink-500"></span> Periode</div>
+                    <div class="flex items-center gap-2"><span class="w-3 h-3 rounded-full border border-dashed border-pink-500"></span> Prognose</div>
+                    <div class="flex items-center gap-2"><span class="w-3 h-3 rounded-full border border-purple-500"></span> Eisprung</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- INSIGHTS VIEW -->
+        <section id="view-insights" class="view">
+            <h2 class="text-3xl font-black mb-8">Analyse</h2>
+            <div class="grid grid-cols-2 gap-4 mb-6 blur-content">
+                <div class="glass p-6">
+                    <p class="text-[10px] font-black uppercase opacity-40 mb-1">Ø Zyklus</p>
+                    <p id="stat-cycle-len" class="text-3xl font-black">--</p>
+                </div>
+                <div class="glass p-6">
+                    <p class="text-[10px] font-black uppercase opacity-40 mb-1">Ø Dauer</p>
+                    <p id="stat-period-len" class="text-3xl font-black">--</p>
+                </div>
+            </div>
+            <div class="glass p-6 h-64 blur-content">
+                 <p class="text-[10px] font-black uppercase opacity-40 mb-6">Verlauf</p>
+                 <div id="chart-container" class="h-40 flex items-center justify-center text-xs opacity-40 uppercase font-black">Keine Daten vorhanden</div>
+            </div>
+        </section>
+
+        <!-- SETTINGS VIEW -->
+        <section id="view-settings" class="view">
+            <h2 class="text-3xl font-black mb-8">Design & Setup</h2>
+            <div class="grid gap-6">
+                <!-- App Identity -->
+                <div class="glass p-6">
+                    <p class="text-[10px] font-black uppercase tracking-widest opacity-40 mb-4">Branding</p>
+                    <div class="flex flex-col gap-4">
+                        <div class="flex justify-between items-center">
+                            <span class="text-sm font-bold">App Name</span>
+                            <input type="text" id="setting-name-input" onchange="saveDetailedSettings()" placeholder="Lunar Flow" class="bg-white/5 p-2 rounded-xl text-right font-medium text-sm border border-white/5 outline-none focus:border-primary/50 transition">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Colors -->
+                <div class="glass p-6">
+                    <p class="text-[10px] font-black uppercase tracking-widest opacity-40 mb-4">Farbpalette</p>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="flex flex-col gap-2">
+                            <span class="text-[10px] font-bold opacity-60">Primär</span>
+                            <div class="flex items-center gap-3 bg-white/5 p-2 rounded-xl">
+                                <input type="color" id="setting-color-primary" onchange="saveDetailedSettings()" class="w-8 h-8 rounded-lg cursor-pointer bg-transparent border-none">
+                                <span class="text-[10px] font-mono opacity-50 uppercase" id="color-primary-hex">#000</span>
+                            </div>
+                        </div>
+                        <div class="flex flex-col gap-2">
+                            <span class="text-[10px] font-bold opacity-60">Akzent</span>
+                            <div class="flex items-center gap-3 bg-white/5 p-2 rounded-xl">
+                                <input type="color" id="setting-color-accent" onchange="saveDetailedSettings()" class="w-8 h-8 rounded-lg cursor-pointer bg-transparent border-none">
+                                <span class="text-[10px] font-mono opacity-50 uppercase" id="color-accent-hex">#000</span>
+                            </div>
+                        </div>
+                    </div>
+                    <button onclick="resetColors()" class="w-full mt-4 py-2 border border-white/10 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-white/5 transition">Farben zurücksetzen</button>
+                </div>
+
+                <!-- Config -->
+                <div class="glass p-6">
+                    <p class="text-[10px] font-black uppercase tracking-widest opacity-40 mb-4">Konfiguration</p>
+                    <div class="flex flex-col gap-4">
+                        <div class="flex justify-between items-center">
+                            <div>
+                                <p class="text-sm font-bold">Zykluslänge</p>
+                                <p class="text-[10px] opacity-40">Durchschnittliche Tage</p>
+                            </div>
+                            <input type="number" id="setting-cycle-input" onchange="saveDetailedSettings()" class="bg-white/5 w-16 p-2 rounded-xl text-center font-black border border-white/5">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Data -->
+                <div class="grid grid-cols-2 gap-4 mt-4">
+                    <button onclick="exportData()" class="glass p-6 text-center font-black uppercase text-[10px] hover:bg-white/5 transition border-white/5"><i class="fa-solid fa-download block text-xl mb-2 opacity-50"></i> Export</button>
+                    <label class="glass p-6 text-center font-black uppercase text-[10px] cursor-pointer hover:bg-white/5 transition border-white/5">
+                        <i class="fa-solid fa-upload block text-xl mb-2 opacity-50"></i> Import
+                        <input type="file" onchange="importData(this)" class="hidden">
                     </label>
                 </div>
+                <button onclick="confirmReset()" class="glass p-6 text-center font-black uppercase text-[10px] text-red-400/80 hover:bg-red-400/10 transition mt-4 border-red-400/10"><i class="fa-solid fa-trash mr-2"></i> Datenbank löschen</button>
             </div>
+        </section>
+    </main>
 
-            <!-- Reset Button Zone -->
-            <div class="pt-8 mt-4 border-t border-slate-100 dark:border-slate-700">
-                <button onclick="confirmReset()"
-                    class="w-full text-sm font-bold text-red-500 hover:text-red-600 flex items-center justify-center bg-red-50 px-4 py-3 rounded-xl dark:bg-red-900/20 transition-colors"><i
-                        class="fa-solid fa-trash mr-2"></i>App zurücksetzen</button>
+    <!-- NAVIGATION DOCK -->
+    <nav class="nav-dock">
+        <button onclick="switchView('dashboard')" id="nav-dashboard" class="nav-item active"><i class="fa-solid fa-house"></i></button>
+        <button onclick="switchView('calendar')" id="nav-calendar" class="nav-item"><i class="fa-solid fa-calendar"></i></button>
+        <button onclick="switchView('insights')" id="nav-insights" class="nav-item"><i class="fa-solid fa-chart-simple"></i></button>
+    </nav>
+
+    <!-- DAY MODAL (Bottom Sheet) -->
+    <div id="day-modal">
+        <div class="modal-overlay" onclick="closeModal()"></div>
+        <div class="modal-content">
+            <div class="flex justify-between items-center mb-10">
+                <div>
+                    <h3 id="modal-date" class="text-2xl font-black">Details</h3>
+                    <p class="text-[10px] font-black uppercase tracking-widest opacity-40 mt-1">Tag bearbeiten</p>
+                </div>
+                <button onclick="closeModal()" class="w-12 h-12 glass flex items-center justify-center rounded-2xl"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            
+            <div class="grid gap-8">
+                <div class="flex justify-between items-center bg-white/5 p-5 rounded-3xl border border-white/5">
+                    <span class="font-bold flex items-center text-sm"><i class="fa-solid fa-droplet mr-3 text-rose-500"></i> Periode aktiv?</span>
+                    <button id="modal-period-toggle" onclick="togglePeriodFromModal()" class="px-6 py-2.5 rounded-full font-black text-[10px] uppercase transition-all">Nein</button>
+                </div>
+                
+                <div>
+                   <p class="text-[10px] font-black uppercase tracking-widest opacity-30 mb-5 ml-1">Wie ist deine Stimmung?</p>
+                   <div class="flex justify-between gap-2 px-1">
+                        <button onclick="toggleSymptom('happy')" class="sym-btn w-14 h-14 glass flex items-center justify-center text-3xl transition-transform active:scale-90" data-val="happy">😊</button>
+                        <button onclick="toggleSymptom('neutral')" class="sym-btn w-14 h-14 glass flex items-center justify-center text-3xl transition-transform active:scale-90" data-val="neutral">😐</button>
+                        <button onclick="toggleSymptom('sad')" class="sym-btn w-14 h-14 glass flex items-center justify-center text-3xl transition-transform active:scale-90" data-val="sad">😢</button>
+                        <button onclick="toggleSymptom('angry')" class="sym-btn w-14 h-14 glass flex items-center justify-center text-3xl transition-transform active:scale-90" data-val="angry">😡</button>
+                   </div>
+                </div>
+
+                <div>
+                   <p class="text-[10px] font-black uppercase tracking-widest opacity-30 mb-5 ml-1">Körperliche Symptome</p>
+                   <div class="grid grid-cols-4 gap-3">
+                        <button onclick="toggleSymptom('cramps')" class="glass h-16 flex items-center justify-center text-2xl active:scale-90" data-val="cramps">⚡</button>
+                        <button onclick="toggleSymptom('headache')" class="glass h-16 flex items-center justify-center text-2xl active:scale-90" data-val="headache">🤕</button>
+                        <button onclick="toggleSymptom('tired')" class="glass h-16 flex items-center justify-center text-2xl active:scale-90" data-val="tired">💤</button>
+                        <button onclick="toggleSymptom('acne')" class="glass h-16 flex items-center justify-center text-2xl active:scale-90" data-val="acne">🔴</button>
+                   </div>
+                </div>
             </div>
         </div>
     </div>
 
-    <!-- CUSTOM CONFIRM MODAL -->
-    <div id="confirm-modal"
-        class="hidden fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm">
-        <div class="bg-white rounded-2xl p-6 shadow-2xl max-w-sm w-full text-center dark:bg-slate-800">
-            <h3 class="font-bold text-lg text-slate-800 mb-2 dark:text-white">Wirklich zurücksetzen?</h3>
-            <p class="text-slate-500 mb-6 text-sm dark:text-slate-400">Alle gespeicherten Daten gehen unwiderruflich
-                verloren.</p>
-            <div class="flex gap-3 justify-center">
-                <button onclick="closeConfirmModal()"
-                    class="px-4 py-2 rounded-xl font-bold text-slate-600 bg-slate-100 hover:bg-slate-200 dark:bg-slate-700 dark:text-slate-300">Abbrechen</button>
-                <button onclick="performReset()"
-                    class="px-4 py-2 rounded-xl font-bold text-white bg-red-500 hover:bg-red-600 shadow-md">Löschen</button>
-            </div>
-        </div>
-    </div>
-
+    <!-- SCRIPTS -->
     <script>
+        // --- DATA & STATE ---
         let currentDate = new Date();
         let periodData = {};
         let symptomData = {};
-        let settings = { cycleLength: 28, customColors: null, baseColor: '#ec4899', periodColor: '#ff758c', ovulationColor: '#a855f7', darkMode: false };
-        let isPrivacyMode = false;
+        let settings = { cycleLength: 28, primaryColor: '#ec4899', accentColor: '#a855f7', appName: 'Lunar Flow', activePeriodStart: null };
+        let activeView = 'dashboard';
         let selectedDateKey = null;
-        let lastInteractedDate = null; // Für Smart-Fill
-        let pressTimer;
-        let isLongPressTriggered = false;
-        let isScrolling = false;
-
-        const DEFAULTS = {
-            bgStart: '#fbcfe8',
-            bgEnd: '#e11d48',
-            headerStart: '#ec4899',
-            headerEnd: '#fb923c',
-            primary: '#ec4899',
-            textPrimary: '#be185d',
-            accent: '#be123c',
-            period: '#ff758c',
-            ovulation: '#a855f7',
-            darkMode: false
-        };
+        let selectionStart = null;
+        let isPrivacyMode = false;
 
         const PHASES = {
-            MENSTRUATION: {
-                name: "Menstruation",
-                tips: "✨ Gönn dir Ruhe & Wärme. \n🥗 Iss Eisenreiches (Spinat, Fleisch) & Nüsse. \n🚫 Vermeide Koffein & Salziges.",
-                color: "bg-gradient-to-r from-pink-500 to-rose-500 shadow-pink-500/40"
-            },
-            FOLLICULAR: {
-                name: "Follikelphase",
-                tips: "⚡ Deine Energie steigt! Perfekt für neue Projekte & Sport. \n🥗 Iss frisches Gemüse, Proteine & fermentierte Foods.",
-                color: "bg-gradient-to-r from-pink-400 to-purple-400 shadow-purple-500/40"
-            },
-            OVULATION: {
-                name: "Eisprung",
-                tips: "🔥 Du bist in Höchstform! Power dich beim Sport aus. \n🥗 Iss Ballaststoffe & Antioxidantien (Beeren).",
-                color: "bg-gradient-to-r from-purple-500 to-indigo-500 shadow-indigo-500/40"
-            },
-            LUTEAL: {
-                name: "Lutealphase",
-                tips: "🌙 Zeit für Rückzug. Sei sanft zu dir. \n🥗 Komplexe Kohlenhydrate gegen Heißhunger. Magnesium hilft. \n💤 Priorisiere Schlaf.",
-                color: "bg-gradient-to-r from-amber-400 to-orange-500 shadow-orange-500/40"
-            }
+            MENSTRUATION: { name: "Menstruation", tips: "✨ Gönn dir Ruhe & Wärme. <br>🥗 Iss Eisenreiches & Nüsse. <br>🚫 Vermeide Koffein.", color: "#f43f5e", bg: "#450a0a" },
+            FOLLICULAR: { name: "Follikelphase", tips: "⚡ Energie steigt! Perfekt für Sport. <br>🥗 Ess frisches Gemüse & Proteine.", color: "#ec4899", bg: "#4a044e" },
+            OVULATION: { name: "Eisprung", tips: "🔥 Höchstform! Power dich aus. <br>🥗 Iss Ballaststoffe & Beeren.", color: "#a855f7", bg: "#3b0764" },
+            LUTEAL: { name: "Lutealphase", tips: "🌙 Zeit für Rückzug. Sei sanft zu dir. <br>🥗 Magnesium hilft gegen Heißhunger.", color: "#4f46e5", bg: "#1e1b4b" }
         };
 
-        const QUOTES = ["YOU GO GIRL 💖", "SLAY 💅", "LOVE YOURSELF ✨", "BOSS BITCH 👑", "POWER WOMAN 💪", "TRUST YOUR FLOW 🌊", "SHINE BRIGHT 💎"];
-
+        // --- INIT ---
         function init() {
             loadData();
-
-            document.getElementById('dark-mode-toggle').checked = settings.darkMode || false;
-            document.getElementById('input-main-color').value = settings.baseColor || '#ec4899';
-            document.getElementById('input-period-color').value = settings.periodColor || '#ff758c';
-            document.getElementById('input-ovulation-color').value = settings.ovulationColor || '#a855f7';
-
-            if (settings.customColors) {
-                if (!settings.customColors.ovulation) settings.customColors.ovulation = settings.ovulationColor || DEFAULTS.ovulation;
-                updateSmartTheme(settings.baseColor || DEFAULTS.primary);
-            } else {
-                updateSmartTheme(DEFAULTS.primary);
-            }
-
-            const randomQuote = QUOTES[Math.floor(Math.random() * QUOTES.length)];
-            document.getElementById('footer-quote').textContent = randomQuote;
-
-            renderCalendar();
-            updateAnalysis();
-        }
-
-        function saveData() {
-            try {
-                localStorage.setItem('nico_period_data', JSON.stringify(periodData));
-                localStorage.setItem('nico_symptom_data', JSON.stringify(symptomData));
-                localStorage.setItem('nico_period_settings', JSON.stringify(settings));
-                updateAnalysis();
-            } catch (e) {
-                console.warn("Storage not available");
-            }
-        }
-
-        function loadData() {
-            try {
-                const pData = localStorage.getItem('nico_period_data');
-                const sData = localStorage.getItem('nico_symptom_data');
-                const setts = localStorage.getItem('nico_period_settings');
-                if (pData) periodData = JSON.parse(pData);
-                if (sData) symptomData = JSON.parse(sData);
-                if (setts) {
-                    settings = JSON.parse(setts);
-                    document.getElementById('cycle-length-input').value = settings.cycleLength;
-                }
-            } catch (e) {
-                console.warn("Storage not available");
-            }
-        }
-
-        // --- NEW: EXPORT / IMPORT ---
-        function exportData() {
-            const data = {
-                periodData,
-                symptomData,
-                settings,
-                exportDate: new Date().toISOString(),
-                appVersion: "1.1"
-            };
-            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(data));
-            const downloadAnchorNode = document.createElement('a');
-            downloadAnchorNode.setAttribute("href", dataStr);
-            downloadAnchorNode.setAttribute("download", "zyklus_backup_" + formatDateKey(new Date()) + ".json");
-            document.body.appendChild(downloadAnchorNode);
-            downloadAnchorNode.click();
-            downloadAnchorNode.remove();
-        }
-
-        function importData(input) {
-            const file = input.files[0];
-            if (!file) return;
-
-            const reader = new FileReader();
-            reader.onload = function (e) {
-                try {
-                    const imported = JSON.parse(e.target.result);
-                    if (imported.periodData && imported.settings) {
-                        periodData = imported.periodData;
-                        symptomData = imported.symptomData || {};
-                        settings = imported.settings;
-                        saveData();
-                        init();
-                        alert("Daten erfolgreich importiert!");
-                    } else {
-                        alert("Ungültiges Dateiformat.");
-                    }
-                } catch (error) {
-                    alert("Fehler beim Lesen der Datei.");
+            syncActivePeriod(); // Fill gaps for ongoing period
+            
+            // Sync Settings UI
+            document.getElementById('setting-cycle-input').value = settings.cycleLength;
+            document.getElementById('setting-name-input').value = settings.appName || 'Lunar Flow';
+            document.getElementById('setting-color-primary').value = settings.primaryColor;
+            document.getElementById('setting-color-accent').value = settings.accentColor;
+            
+            applySettings();
+            updateUI();
+            switchView('dashboard');
+            
+            // Interval for top date
+            const updateTopDate = () => {
+                const now = new Date();
+                document.getElementById('top-date').textContent = now.toLocaleDateString('de-DE', { weekday: 'long', day: 'numeric', month: 'long' });
+                // Check if date changed to sync active period
+                if(now.getHours() === 0 && now.getMinutes() === 0) {
+                    syncActivePeriod();
+                    updateUI();
                 }
             };
-            reader.readAsText(file);
+            updateTopDate();
+            setInterval(updateTopDate, 60000);
         }
-        // ----------------------------
 
-        function hexToHSL(H) {
-            let r = 0, g = 0, b = 0;
-            if (H.length == 4) {
-                r = "0x" + H[1] + H[1]; g = "0x" + H[2] + H[2]; b = "0x" + H[3] + H[3];
-            } else if (H.length == 7) {
-                r = "0x" + H[1] + H[2]; g = "0x" + H[3] + H[4]; b = "0x" + H[5] + H[6];
+        function syncActivePeriod() {
+            if(!settings.activePeriodStart) return;
+            const start = new Date(settings.activePeriodStart);
+            const today = new Date();
+            let temp = new Date(start);
+            while(temp <= today) {
+                periodData[formatDateKey(temp)] = true;
+                temp.setDate(temp.getDate() + 1);
             }
-            r /= 255; g /= 255; b /= 255;
-            let cmin = Math.min(r, g, b), cmax = Math.max(r, g, b), delta = cmax - cmin;
-            let h = 0, s = 0, l = 0;
-
-            if (delta == 0) h = 0;
-            else if (cmax == r) h = ((g - b) / delta) % 6;
-            else if (cmax == g) h = (b - r) / delta + 2;
-            else h = (r - g) / delta + 4;
-
-            h = Math.round(h * 60);
-            if (h < 0) h += 360;
-
-            l = (cmax + cmin) / 2;
-            s = delta == 0 ? 0 : delta / (1 - Math.abs(2 * l - 1));
-            s = +(s * 100).toFixed(1);
-            l = +(l * 100).toFixed(1);
-
-            return { h, s, l };
-        }
-
-        function hslToHex(h, s, l) {
-            s /= 100; l /= 100;
-            let c = (1 - Math.abs(2 * l - 1)) * s, x = c * (1 - Math.abs((h / 60) % 2 - 1)), m = l - c / 2, r = 0, g = 0, b = 0;
-            if (0 <= h && h < 60) { r = c; g = x; b = 0; }
-            else if (60 <= h && h < 120) { r = x; g = c; b = 0; }
-            else if (120 <= h && h < 180) { r = 0; g = c; b = x; }
-            else if (180 <= h && h < 240) { r = 0; g = x; b = c; }
-            else if (240 <= h && h < 300) { r = x; g = 0; b = c; }
-            else if (300 <= h && h < 360) { r = c; g = 0; b = x; }
-            r = Math.round((r + m) * 255).toString(16);
-            g = Math.round((g + m) * 255).toString(16);
-            b = Math.round((b + m) * 255).toString(16);
-            if (r.length == 1) r = "0" + r;
-            if (g.length == 1) g = "0" + g;
-            if (b.length == 1) b = "0" + b;
-            return "#" + r + g + b;
-        }
-
-        function toggleDarkMode() {
-            settings.darkMode = document.getElementById('dark-mode-toggle').checked;
-            updateSmartTheme(settings.baseColor || DEFAULTS.primary);
-        }
-
-        function updateSmartTheme(baseHex) {
-            const hsl = hexToHSL(baseHex);
-            const isDark = settings.darkMode;
-
-            let bgStart, bgEnd, headerStart, headerEnd, textPrimary, accent, dayBg, dayText, glassBg, glassBorder, shapeFill;
-
-            if (isDark) {
-                bgStart = hslToHex(hsl.h, 40, 10);
-                bgEnd = hslToHex(hsl.h, 50, 20);
-                headerStart = hslToHex(hsl.h, hsl.s, 30);
-                headerEnd = hslToHex((hsl.h + 30) % 360, hsl.s, 25);
-                textPrimary = "#e2e8f0";
-                accent = hslToHex(hsl.h, 80, 70);
-                dayBg = "rgba(30, 41, 59, 0.8)";
-                dayText = "#e2e8f0";
-                glassBg = "rgba(15, 23, 42, 0.85)";
-                glassBorder = "rgba(255, 255, 255, 0.1)";
-                shapeFill = "rgba(15, 23, 42, 0.85)";
-            } else {
-                headerStart = baseHex;
-                headerEnd = hslToHex((hsl.h + 30) % 360, hsl.s, hsl.l);
-                bgStart = hslToHex(hsl.h, 70, 95);
-                bgEnd = hslToHex(hsl.h, 80, 50);
-                const textL = Math.min(hsl.l, 40);
-                accent = hslToHex(hsl.h, 80, textL);
-                textPrimary = hslToHex(hsl.h, 90, 35);
-                dayBg = "rgba(255,255,255,0.75)";
-                dayText = "#334155";
-                glassBg = "rgba(255, 255, 255, 0.92)";
-                glassBorder = "rgba(255, 255, 255, 0.6)";
-                shapeFill = "rgba(255, 255, 255, 0.92)";
-            }
-
-            const colors = {
-                bgStart, bgEnd, headerStart, headerEnd,
-                primary: baseHex,
-                textPrimary, accent,
-                dayBg, dayText, glassBg, glassBorder, shapeFill,
-                period: settings.periodColor || DEFAULTS.period,
-                ovulation: settings.ovulationColor || DEFAULTS.ovulation
-            };
-
-            settings.baseColor = baseHex;
-            settings.customColors = colors;
-            applyTheme(colors);
             saveData();
         }
 
-        function updatePeriodColor(color) {
-            settings.periodColor = color;
-            if (!settings.customColors) updateSmartTheme(settings.baseColor || DEFAULTS.primary);
-            settings.customColors.period = color;
-            applyTheme(settings.customColors);
-            saveData();
+        function startLivePeriod() {
+            settings.activePeriodStart = formatDateKey(new Date());
+            syncActivePeriod();
+            updateUI();
         }
 
-        function updateOvulationColor(color) {
-            settings.ovulationColor = color;
-            if (!settings.customColors) updateSmartTheme(settings.baseColor || DEFAULTS.primary);
-            settings.customColors.ovulation = color;
-            applyTheme(settings.customColors);
+        function stopLivePeriod() {
+            settings.activePeriodStart = null;
             saveData();
+            updateUI();
         }
 
-        function applyTheme(colors) {
-            const root = document.documentElement;
-            root.style.setProperty('--bg-gradient', `linear-gradient(135deg, ${colors.bgStart} 0%, ${colors.bgEnd} 100%)`);
-            root.style.setProperty('--header-gradient', `linear-gradient(to right, ${colors.headerStart}, ${colors.headerEnd})`);
-            root.style.setProperty('--primary-color', colors.primary);
-            root.style.setProperty('--text-primary', colors.textPrimary || colors.accent);
-            root.style.setProperty('--period-bg', colors.period);
-            root.style.setProperty('--ovulation-color', colors.ovulation);
-            root.style.setProperty('--text-accent', colors.accent);
-            root.style.setProperty('--chart-color', colors.primary);
+        function applySettings() {
+            document.documentElement.style.setProperty('--primary', settings.primaryColor);
+            document.documentElement.style.setProperty('--accent', settings.accentColor);
+            document.querySelectorAll('h1').forEach(h => {
+                if(h.textContent.toLowerCase() === 'lunar flow' || h.dataset.brand) {
+                    h.textContent = settings.appName;
+                    h.dataset.brand = "true";
+                }
+            });
+            document.title = `${settings.appName} | Zyklus Tracker`;
+            
+            document.getElementById('color-primary-hex').textContent = settings.primaryColor;
+            document.getElementById('color-accent-hex').textContent = settings.accentColor;
+        }
 
-            root.style.setProperty('--glass-bg', colors.glassBg);
-            root.style.setProperty('--glass-border', colors.glassBorder);
-            root.style.setProperty('--day-bg', colors.dayBg);
-            root.style.setProperty('--day-text', colors.dayText);
-            root.style.setProperty('--shape-fill', colors.shapeFill);
-
-            const isDark = settings.darkMode;
-            if (isDark) document.documentElement.classList.add('dark');
-            else document.documentElement.classList.remove('dark');
-
-            renderCalendar();
-            renderChart(getCycleStats().cycles);
+        function saveDetailedSettings() {
+            settings.cycleLength = parseInt(document.getElementById('setting-cycle-input').value);
+            settings.appName = document.getElementById('setting-name-input').value;
+            settings.primaryColor = document.getElementById('setting-color-primary').value;
+            settings.accentColor = document.getElementById('setting-color-accent').value;
+            saveData();
+            applySettings();
         }
 
         function resetColors() {
-            settings.customColors = null;
-            settings.baseColor = DEFAULTS.primary;
-            settings.periodColor = DEFAULTS.period;
-            settings.ovulationColor = DEFAULTS.ovulation;
-            settings.darkMode = false;
-
-            document.getElementById('input-main-color').value = DEFAULTS.primary;
-            document.getElementById('input-period-color').value = DEFAULTS.period;
-            document.getElementById('input-ovulation-color').value = DEFAULTS.ovulation;
-            document.getElementById('dark-mode-toggle').checked = false;
-
-            updateSmartTheme(DEFAULTS.primary);
-            saveData();
+            settings.primaryColor = '#ec4899';
+            settings.accentColor = '#a855f7';
+            document.getElementById('setting-color-primary').value = settings.primaryColor;
+            document.getElementById('setting-color-accent').value = settings.accentColor;
+            saveDetailedSettings();
         }
 
-        function confirmReset() {
-            document.getElementById('confirm-modal').classList.remove('hidden');
+        // --- STORAGE ---
+        function loadData() {
+            const p = localStorage.getItem('lunar_period');
+            const s = localStorage.getItem('lunar_symptoms');
+            const set = localStorage.getItem('lunar_settings');
+            if(p) periodData = JSON.parse(p);
+            if(s) symptomData = JSON.parse(s);
+            if(set) settings = JSON.parse(set);
         }
 
-        function closeConfirmModal() {
-            document.getElementById('confirm-modal').classList.add('hidden');
+        function saveData() {
+            localStorage.setItem('lunar_period', JSON.stringify(periodData));
+            localStorage.setItem('lunar_symptoms', JSON.stringify(symptomData));
+            localStorage.setItem('lunar_settings', JSON.stringify(settings));
+            updateUI();
         }
 
-        function performReset() {
-            try { localStorage.clear(); } catch (e) { }
-            periodData = {}; symptomData = {};
-            settings = { cycleLength: 28, customColors: null, baseColor: '#ec4899', periodColor: '#ff758c', ovulationColor: '#a855f7', darkMode: false };
-            init(); toggleSettings();
-            closeConfirmModal();
+        // --- NAVIGATION ---
+        function switchView(viewId) {
+            activeView = viewId;
+            document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+            
+            const target = document.getElementById(`view-${viewId}`);
+            if(target) target.classList.add('active');
+            
+            const nav = document.getElementById(`nav-${viewId}`);
+            if(nav) nav.classList.add('active');
+            
+            if(viewId === 'calendar') renderCalendar();
+            if(viewId === 'insights') renderInsights();
+            if(viewId === 'dashboard') updateUI();
         }
 
-        function toggleSettings() { document.getElementById('settings-panel').classList.toggle('hidden'); }
+        // --- UI UPDATES ---
+        function updateUI() {
+            const stats = getStats();
+            const usedLen = stats.predictedLen || settings.cycleLength;
+            const today = new Date();
+            
+            if(stats.lastStart) {
+                const diff = Math.floor((today - new Date(stats.lastStart)) / 86400000) + 1;
+                
+                document.getElementById('dashboard-day').textContent = diff > 0 ? diff : "--";
+                
+                // Wheel Progress
+                const progress = Math.min(Math.max(diff / usedLen, 0), 1);
+                document.getElementById('wheel-css-prog').style.setProperty('--p', progress * 100);
+                
+                // Phase Detection
+                let phase = PHASES.LUTEAL;
+                const ovDay = usedLen - 14;
+                if(periodData[formatDateKey(today)]) phase = PHASES.MENSTRUATION;
+                else if(diff < ovDay - 2) phase = PHASES.FOLLICULAR;
+                else if(diff >= ovDay - 2 && diff <= ovDay + 1) phase = PHASES.OVULATION;
+                
+                document.getElementById('phase-badge').textContent = phase.name;
+                document.getElementById('phase-badge').style.color = phase.color;
+                document.getElementById('phase-name').textContent = phase.name;
+                document.getElementById('phase-status').textContent = `Tag ${diff} von ${usedLen}`;
+                document.getElementById('dashboard-tips').innerHTML = phase.tips;
+                
+                document.getElementById('fluid-bg').style.background = `radial-gradient(circle at 50% 50%, ${phase.bg} 0%, #020617 100%)`;
+                document.documentElement.style.setProperty('--primary', phase.color);
 
-        function togglePrivacy() {
-            isPrivacyMode = !isPrivacyMode;
-            document.body.classList.toggle('privacy-mode', isPrivacyMode);
-            const icon = document.querySelector('#privacy-btn i');
-            icon.className = isPrivacyMode ? "fa-regular fa-eye-slash text-white" : "fa-regular fa-eye text-white";
-        }
-
-        function saveSettings() {
-            settings.cycleLength = parseInt(document.getElementById('cycle-length-input').value) || 28;
-            saveData(); renderCalendar();
-        }
-
-        function formatDateKey(date) {
-            const y = date.getFullYear();
-            const m = String(date.getMonth() + 1).padStart(2, '0');
-            const d = String(date.getDate()).padStart(2, '0');
-            return `${y}-${m}-${d}`;
-        }
-
-        function startPress(dateKey) {
-            isLongPressTriggered = false;
-            pressTimer = setTimeout(() => {
-                if (!isScrolling) {
-                    isLongPressTriggered = true;
-                    if (navigator.vibrate) navigator.vibrate(50);
-                    openDayModal(dateKey);
-                }
-            }, 500);
-        }
-
-        function cancelPress() { clearTimeout(pressTimer); }
-
-        function handleRelease(dateKey) {
-            clearTimeout(pressTimer);
-            if (isScrolling) return;
-            if (!isLongPressTriggered) togglePeriodDirect(dateKey);
-            isLongPressTriggered = false;
-        }
-
-        function togglePeriodDirect(dateKey) {
-            // 1. Normaler Toggle
-            const wasActive = !!periodData[dateKey];
-            if (wasActive) delete periodData[dateKey];
-            else periodData[dateKey] = true;
-
-            const isNowActive = !wasActive;
-
-            // 2. Smart Fill Logik
-            if (isNowActive && lastInteractedDate) {
-                const prevDate = new Date(lastInteractedDate);
-                const currDate = new Date(dateKey);
-
-                // Prüfen ob das letzte Datum auch noch aktiv ist (könnte gelöscht worden sein)
-                if (periodData[lastInteractedDate]) {
-                    const diffTime = Math.abs(currDate - prevDate);
-                    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-
-                    // Wenn Abstand > 1 Tag und <= 8 Tage
-                    if (diffDays > 1 && diffDays <= 8) {
-                        fillRange(lastInteractedDate, dateKey);
-                        if (navigator.vibrate) navigator.vibrate([30, 50, 30]); // Feedback
-                    }
-                }
-            }
-
-            // Update last interaction
-            // Wir merken uns das Datum nur, wenn wir es AKTIVIERT haben.
-            // Wenn man löscht, unterbricht man die Kette.
-            if (isNowActive) {
-                lastInteractedDate = dateKey;
-            } else {
-                lastInteractedDate = null;
-            }
-
-            saveData();
-            renderCalendar();
-        }
-
-        function fillRange(startKey, endKey) {
-            let start = new Date(startKey);
-            let end = new Date(endKey);
-
-            if (end < start) {
-                const temp = start;
-                start = end;
-                end = temp;
-            }
-
-            const current = new Date(start);
-            while (current <= end) {
-                const key = formatDateKey(current);
-                periodData[key] = true;
-                current.setDate(current.getDate() + 1);
-            }
-        }
-
-        function openDayModal(dateKey) {
-            selectedDateKey = dateKey;
-            const dateObj = new Date(dateKey);
-            document.getElementById('modal-date-title').textContent = dateObj.toLocaleDateString('de-DE', { weekday: 'long', day: 'numeric', month: 'long' });
-            document.getElementById('day-modal').classList.remove('hidden');
-            updateModalUI();
-        }
-
-        function closeDayModal() {
-            document.getElementById('day-modal').classList.add('hidden');
-            selectedDateKey = null; renderCalendar();
-        }
-
-        function updateModalUI() {
-            if (!selectedDateKey) return;
-            const pBtn = document.getElementById('modal-period-toggle');
-            if (periodData[selectedDateKey]) {
-                pBtn.textContent = "Ja (Aktiv)";
-                pBtn.style.backgroundColor = "white";
-                pBtn.style.color = "var(--primary-color)";
-                pBtn.style.borderColor = "white";
-            } else {
-                pBtn.textContent = "Nein";
-                pBtn.style.backgroundColor = "transparent";
-                pBtn.style.color = "var(--text-accent)";
-                pBtn.style.borderColor = "var(--primary-light)";
-            }
-
-            const daySym = symptomData[selectedDateKey] || { body: [] };
-            document.querySelectorAll('.symptom-btn').forEach(btn => btn.classList.remove('active'));
-            document.querySelectorAll('.symptom-wrapper').forEach(wrap => wrap.classList.remove('selected'));
-            document.querySelectorAll('.symptom-btn').forEach(btn => {
-                const cat = btn.dataset.cat; const val = btn.dataset.val;
-                if (cat === 'mood' && daySym.mood === val) btn.classList.add('active');
-                if (cat === 'body' && daySym.body && daySym.body.includes(val)) {
-                    btn.classList.add('active');
-                    const wrapper = btn.closest('.symptom-wrapper');
-                    if (wrapper) wrapper.classList.add('selected');
-                }
-            });
-        }
-
-        function togglePeriodFromModal() {
-            if (!selectedDateKey) return;
-            if (periodData[selectedDateKey]) delete periodData[selectedDateKey];
-            else periodData[selectedDateKey] = true;
-            saveData(); updateModalUI(); updateAnalysis();
-        }
-
-        function toggleSymptom(category, value) {
-            if (!selectedDateKey) return;
-            if (!symptomData[selectedDateKey]) symptomData[selectedDateKey] = { body: [] };
-            if (category === 'mood') {
-                if (symptomData[selectedDateKey].mood === value) delete symptomData[selectedDateKey].mood;
-                else symptomData[selectedDateKey].mood = value;
-            } else if (category === 'body') {
-                const idx = symptomData[selectedDateKey].body.indexOf(value);
-                if (idx > -1) symptomData[selectedDateKey].body.splice(idx, 1);
-                else symptomData[selectedDateKey].body.push(value);
-            }
-            saveData(); updateModalUI();
-        }
-
-        function getCycleStats() {
-            const keys = Object.keys(periodData).sort();
-            if (keys.length === 0) return { lastStart: null, predictedLength: 0, medianDuration: 0, cycles: [], variability: 0, method: 'none' };
-
-            const sToD = (s) => new Date(s);
-            let periods = [];
-            let currentPeriod = [keys[0]];
-
-            for (let i = 1; i < keys.length; i++) {
-                const prev = sToD(keys[i - 1]);
-                const curr = sToD(keys[i]);
-                const diffDays = (curr - prev) / (1000 * 60 * 60 * 24);
-                if (diffDays <= 1.5) currentPeriod.push(keys[i]);
-                else { periods.push(currentPeriod); currentPeriod = [keys[i]]; }
-            }
-            periods.push(currentPeriod);
-
-            let rawLengths = [];
-            let periodDurations = [];
-
-            periods.forEach((p, index) => {
-                periodDurations.push(p.length);
-                if (index < periods.length - 1) {
-                    const startCurrent = sToD(p[0]);
-                    const startNext = sToD(periods[index + 1][0]);
-                    const days = (startNext - startCurrent) / (1000 * 60 * 60 * 24);
-                    if (days >= 10 && days < 200) rawLengths.push(days);
-                }
-            });
-
-            let predictedLen = 28;
-            let method = "average";
-            let variability = 0;
-
-            if (rawLengths.length > 0) {
-                const sortedRaw = [...rawLengths].sort((a, b) => a - b);
-                const globalMedian = sortedRaw[Math.floor(sortedRaw.length / 2)];
-                const lastCycle = rawLengths[rawLengths.length - 1];
-                const isRecentOutlier = Math.abs(lastCycle - globalMedian) > 3;
-
-                if (rawLengths.length >= 2) {
-                    const mean = rawLengths.reduce((a, b) => a + b, 0) / rawLengths.length;
-                    const variance = rawLengths.reduce((a, b) => a + Math.pow(b - mean, 2), 0) / rawLengths.length;
-                    variability = Math.sqrt(variance);
-                }
-
-                if (rawLengths.length < 3) {
-                    predictedLen = Math.round(rawLengths.reduce((a, b) => a + b, 0) / rawLengths.length);
+                // Countdown Logic
+                let countdownText = "";
+                if(phase === PHASES.MENSTRUATION) {
+                    const remaining = Math.max(0, stats.avgDuration - diff);
+                    countdownText = remaining > 0 ? `noch ${remaining} Tage` : "letzter Tag";
                 } else {
-                    if (isRecentOutlier) {
-                        predictedLen = globalMedian;
-                        method = "median (stabilisiert)";
-                    } else if (variability < 2) {
-                        const recent = rawLengths.slice(-3);
-                        predictedLen = Math.round((recent[2] * 0.5) + (recent[1] * 0.3) + (recent[0] * 0.2));
-                        method = "trend";
-                    } else {
-                        predictedLen = globalMedian;
-                        method = "median";
-                    }
+                    const remaining = Math.max(0, usedLen - diff);
+                    countdownText = remaining > 0 ? `in ${remaining} Tagen` : "morgen";
                 }
+                const cdEl = document.getElementById('dashboard-countdown');
+                if(cdEl) {
+                    cdEl.textContent = countdownText;
+                    cdEl.style.color = phase.color;
+                }
+
+            } else {
+                document.getElementById('dashboard-day').textContent = "--";
+                document.getElementById('phase-badge').textContent = "Keine Daten";
+                document.getElementById('phase-status').textContent = "Bitte Logge deine Periode im Kalender.";
+                document.getElementById('fluid-bg').style.background = `radial-gradient(circle at 50% 50%, #1e1b4b 0%, #020617 100%)`;
             }
 
-            periodDurations.sort((a, b) => a - b);
-            const medDur = periodDurations.length ? periodDurations[Math.floor(periodDurations.length / 2)] : 5;
-            const lastStart = periods.length > 0 ? periods[periods.length - 1][0] : null;
+            // --- LIVE CARDS ---
+            const isLive = !!settings.activePeriodStart;
+            const liveCard = document.getElementById('live-action-card');
+            const startCard = document.getElementById('start-action-card');
+            if(liveCard) liveCard.classList.toggle('hidden', !isLive);
+            if(startCard) startCard.classList.toggle('hidden', isLive || periodData[formatDateKey(today)]);
 
-            return { lastStart, predictedLength: predictedLen, medianDuration: medDur, cycles: rawLengths, variability, method };
+            document.getElementById('stat-cycle-len').textContent = stats.predictedLen ? stats.predictedLen + " d" : "--";
+            document.getElementById('stat-period-len').textContent = stats.avgDuration ? stats.avgDuration + " d" : "--";
         }
 
-        function renderChart(cycleLengths) {
-            const container = document.getElementById('chart-container');
-            const data = cycleLengths.slice(-6);
-            if (data.length < 2) { container.innerHTML = '<p class="text-xs self-center opacity-50" style="color: var(--day-text)">Noch nicht genügend Daten für die Grafik.</p>'; return; }
-            const w = container.clientWidth; const h = container.clientHeight; const padding = 20;
-            const min = Math.min(...data) - 2; const max = Math.max(...data) + 2; const range = max - min;
-            const points = data.map((val, i) => {
-                const x = padding + (i / (data.length - 1)) * (w - padding * 2);
-                const y = h - padding - ((val - min) / range) * (h - padding * 2);
-                return `${x},${y}`;
-            });
-            let svgHTML = `<svg width="100%" height="100%" viewBox="0 0 ${w} ${h}">`;
-            for (let i = 0; i <= 4; i++) {
-                const y = h - padding - (i / 4) * (h - padding * 2);
-                svgHTML += `<line x1="${padding}" y1="${y}" x2="${w - padding}" y2="${y}" class="chart-grid" />`;
-            }
-            svgHTML += `<polyline points="${points.join(' ')}" class="chart-line" />`;
-            data.forEach((val, i) => {
-                const coords = points[i].split(',');
-                svgHTML += `<circle cx="${coords[0]}" cy="${coords[1]}" r="4" class="chart-dot" />`;
-                svgHTML += `<text x="${coords[0]}" y="${parseFloat(coords[1]) - 10}" text-anchor="middle" font-size="10" fill="var(--day-text)" font-weight="bold">${val}</text>`;
-            });
-            svgHTML += `</svg>`;
-            container.innerHTML = svgHTML;
-        }
-
-        function updateAnalysis() {
-            const stats = getCycleStats();
-            const statusEl = document.getElementById('cycle-status');
-            const phaseBadge = document.getElementById('phase-badge');
-            const phaseBox = document.getElementById('phase-info-box');
-
-            const usedLen = (stats.predictedLength > 0) ? stats.predictedLength : settings.cycleLength;
-
-            if (stats.lastStart) {
-                const lastStartDate = new Date(stats.lastStart);
-                const today = new Date();
-                const diffTime = today - lastStartDate;
-                const cycleDay = Math.floor(diffTime / (1000 * 60 * 60 * 24)) + 1;
-                const daysUntil = usedLen - cycleDay + 1;
-
-                let buffer = 1;
-                if (stats.variability > 2) buffer = 2;
-                if (stats.variability > 4) buffer = 4;
-                const bufferText = stats.variability > 0 ? ` (±${buffer})` : "";
-
-                const nextPeriodDate = new Date(lastStartDate);
-                nextPeriodDate.setDate(nextPeriodDate.getDate() + usedLen);
-
-                const rangeStart = new Date(nextPeriodDate);
-                rangeStart.setDate(rangeStart.getDate() - buffer);
-                const rangeEnd = new Date(nextPeriodDate);
-                rangeEnd.setDate(rangeEnd.getDate() + buffer);
-
-                const formatDate = (d) => d.toLocaleDateString('de-DE', { day: '2-digit', month: 'short' });
-                const rangeString = `${formatDate(rangeStart)} - ${formatDate(rangeEnd)}`;
-
-                if (cycleDay < 1) {
-                    statusEl.textContent = "Start in der Zukunft";
-                    phaseBadge.classList.add('hidden');
-                } else {
-                    let phase = null;
-                    const ovulationDay = usedLen - 14;
-                    const todayKey = formatDateKey(today);
-
-                    if (periodData[todayKey]) phase = PHASES.MENSTRUATION;
-                    else if (cycleDay < ovulationDay - 3) phase = PHASES.FOLLICULAR;
-                    else if (cycleDay >= ovulationDay - 3 && cycleDay <= ovulationDay + 1) phase = PHASES.OVULATION;
-                    else phase = PHASES.LUTEAL;
-
-                    if (phase === PHASES.MENSTRUATION) {
-                        const avgDur = stats.medianDuration > 0 ? stats.medianDuration : 5;
-                        const daysLeft = avgDur - cycleDay;
-
-                        if (daysLeft > 0) {
-                            statusEl.innerHTML = `<span class="text-2xl font-bold block">Tag ${cycleDay}</span><span class="text-sm font-medium opacity-80 block mt-1">Endet in ca. ${daysLeft} Tagen</span>`;
-                        } else if (daysLeft === 0) {
-                            statusEl.innerHTML = `<span class="text-2xl font-bold block">Tag ${cycleDay}</span><span class="text-sm font-medium opacity-80 block mt-1">Endet voraussichtlich heute</span>`;
-                        } else {
-                            statusEl.textContent = `Tag ${cycleDay} der Periode`;
-                        }
-                    } else {
-                        if (daysUntil > 0) {
-                            statusEl.innerHTML = `<span class="text-2xl font-bold block">Noch ${daysUntil} Tage</span><span class="text-sm font-medium opacity-80 block mt-1">Erwartet: ${rangeString}</span>`;
-                        } else {
-                            statusEl.textContent = `Überfällig (${Math.abs(daysUntil)})`;
-                        }
-                    }
-
-                    phaseBadge.textContent = `${phase.name} (T.${cycleDay})`;
-                    let badgeClass = "privacy-blur inline-block mt-3 backdrop-blur-md border border-white/30 rounded-full px-5 py-1.5 text-sm font-bold text-white shadow-lg ";
-                    phaseBadge.className = badgeClass + phase.color.replace('shadow-pink-500/40', '').replace('shadow-purple-500/40', '').replace('shadow-indigo-500/40', '').replace('shadow-orange-500/40', '');
-                    phaseBadge.style.boxShadow = "0 4px 14px rgba(0,0,0,0.2)";
-
-                    phaseBadge.classList.remove('hidden');
-                    document.getElementById('phase-title').textContent = phase.name + " - Tipps";
-                    document.getElementById('phase-desc').innerHTML = phase.tips.replace(/\n/g, '<br>');
-
-                    phaseBox.classList.remove('hidden');
-                }
-            } else { statusEl.textContent = "Keine Daten"; }
-
-            const lenEl = document.getElementById('stat-avg-length');
-            const lenFeedback = document.getElementById('stat-length-feedback');
-            const regBox = document.getElementById('regularity-box');
-            const regText = document.getElementById('regularity-text');
-
-            lenEl.textContent = stats.predictedLength > 0 ? stats.predictedLength : "--";
-
-            if (stats.predictedLength === 0) {
-                lenFeedback.textContent = "Daten sammeln...";
-                lenFeedback.className = "text-[10px] font-bold mt-1 text-slate-400 bg-white/80 inline-block px-2 py-0.5 rounded-lg";
-            } else if (stats.predictedLength < 21) {
-                lenFeedback.textContent = "Kurz (<21)";
-                lenFeedback.className = "text-[10px] font-bold mt-1 text-red-600 bg-red-50/90 inline-block px-2 py-0.5 rounded-lg border border-red-100";
-            } else if (stats.predictedLength > 35) {
-                lenFeedback.textContent = "Lang (>35)";
-                lenFeedback.className = "text-[10px] font-bold mt-1 text-orange-600 bg-orange-50/90 inline-block px-2 py-0.5 rounded-lg border border-orange-100";
-            } else {
-                const methodText = stats.method === 'median' ? ' (Median)' : ' (Trend)';
-                if (stats.method.includes("stabilisiert")) {
-                    lenFeedback.textContent = "Abweichung ignoriert";
-                    lenFeedback.className = "text-[10px] font-bold mt-1 text-blue-600 bg-blue-50/80 inline-block px-2 py-0.5 rounded-lg";
-                } else {
-                    lenFeedback.textContent = "Normal" + methodText;
-                    lenFeedback.className = "text-[10px] font-bold mt-1 text-green-600 bg-green-50/80 inline-block px-2 py-0.5 rounded-lg";
-                }
-            }
-
-            if (stats.variability > 4) {
-                regBox.classList.remove('hidden');
-                regText.textContent = "Starke Schwankungen erkannt. Prognose nutzt sicheren Median (+/- Puffer).";
-            } else if (stats.variability > 2.5) {
-                regBox.classList.remove('hidden');
-                regText.textContent = "Leichte Schwankungen. Prognose angepasst.";
-            } else {
-                regBox.classList.add('hidden');
-            }
-
-            const durEl = document.getElementById('stat-avg-duration');
-            const durFeedback = document.getElementById('stat-duration-feedback');
-
-            durEl.textContent = stats.medianDuration > 0 ? stats.medianDuration : "--";
-
-            if (stats.medianDuration === 0) {
-                durFeedback.textContent = "Daten sammeln...";
-                durFeedback.className = "text-[10px] font-bold mt-1 text-slate-400 bg-white/80 inline-block px-2 py-0.5 rounded-lg";
-            } else if (stats.medianDuration > 7) {
-                durFeedback.textContent = "Lang (>7)";
-                durFeedback.className = "text-[10px] font-bold mt-1 text-orange-600 bg-orange-50/90 inline-block px-2 py-0.5 rounded-lg";
-            } else if (stats.medianDuration < 2) {
-                durFeedback.textContent = "Kurz (<2)";
-                durFeedback.className = "text-[10px] font-bold mt-1 text-orange-600 bg-orange-50/90 inline-block px-2 py-0.5 rounded-lg";
-            } else {
-                durFeedback.textContent = "Normal (2-7)";
-                durFeedback.className = "text-[10px] font-bold mt-1 text-green-600 bg-green-50/80 inline-block px-2 py-0.5 rounded-lg";
-            }
-
-            renderChart(stats.cycles);
-        }
-
+        // --- CALENDAR ---
         function renderCalendar() {
             const grid = document.getElementById('calendar-grid');
-            const monthDisplay = document.getElementById('current-month-display');
             grid.innerHTML = '';
-
-            const options = { month: 'long', year: 'numeric' };
-            monthDisplay.textContent = currentDate.toLocaleDateString('de-DE', options);
-
-            const year = currentDate.getFullYear();
-            const month = currentDate.getMonth();
-            const firstDayOfMonth = new Date(year, month, 1);
-            const daysInMonth = new Date(year, month + 1, 0).getDate();
-
-            let startDay = firstDayOfMonth.getDay() - 1;
-            if (startDay === -1) startDay = 6;
-
-            const stats = getCycleStats();
-            let predictedDates = [];
-            let ovulationDates = [];
-
-            if (stats.lastStart) {
-                const usedLen = (stats.predictedLength > 0) ? stats.predictedLength : settings.cycleLength;
-                const usedDur = (stats.medianDuration > 0) ? stats.medianDuration : 5;
-
-                let lastStartObj = new Date(stats.lastStart);
-                for (let i = 1; i <= 3; i++) {
-                    let nextStart = new Date(lastStartObj);
-                    nextStart.setDate(nextStart.getDate() + (usedLen * i));
-
-                    for (let d = 0; d < usedDur; d++) {
-                        let p = new Date(nextStart);
-                        p.setDate(p.getDate() + d);
-                        predictedDates.push(formatDateKey(p));
-                    }
-                    let ov = new Date(nextStart);
-                    ov.setDate(ov.getDate() - 14);
-                    ovulationDates.push(formatDateKey(ov));
-                }
-            }
-
-            for (let i = 0; i < startDay; i++) {
-                const e = document.createElement('div'); e.className = 'day-cell empty'; grid.appendChild(e);
-            }
-
+            
+            const monthNames = ["Januar", "Februar", "März", "April", "Mai", "Juni", "Juli", "August", "September", "Oktober", "November", "Dezember"];
+            document.getElementById('cal-month-display').textContent = monthNames[currentDate.getMonth()] + " " + currentDate.getFullYear();
+            
+            const first = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
+            const last = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0).getDate();
+            let start = first.getDay() - 1; if(start === -1) start = 6;
+            
+            const stats = getStats();
             const todayKey = formatDateKey(new Date());
-
-            for (let i = 1; i <= daysInMonth; i++) {
-                const dateObj = new Date(year, month, i);
-                const dateKey = formatDateKey(dateObj);
-                const cell = document.createElement('div');
-                cell.className = 'day-cell';
-                cell.textContent = i;
-
-                if (dateKey === todayKey) cell.classList.add('is-today');
-                if (periodData[dateKey]) cell.classList.add('is-period');
-                else if (predictedDates.includes(dateKey)) cell.classList.add('is-predicted');
-                else if (ovulationDates.includes(dateKey)) cell.classList.add('is-ovulation');
-
-                if (symptomData[dateKey] && (symptomData[dateKey].mood || (symptomData[dateKey].body && symptomData[dateKey].body.length > 0))) {
-                    cell.classList.add('has-symptoms');
+            
+            // Forecasts
+            let forecasts = [];
+            if(stats.lastStart) {
+                const len = stats.predictedLen || settings.cycleLength;
+                const dur = stats.avgDuration || 5;
+                let nextStart = new Date(stats.lastStart);
+                for(let i=1; i<=2; i++) {
+                    let d = new Date(nextStart); d.setDate(d.getDate() + (len * i));
+                    for(let j=0; j<dur; j++) {
+                        let f = new Date(d); f.setDate(f.getDate() + j);
+                        forecasts.push(formatDateKey(f));
+                    }
                 }
+            }
 
-                cell.addEventListener('mousedown', () => startPress(dateKey));
-                cell.addEventListener('mouseup', () => handleRelease(dateKey));
-                cell.addEventListener('mouseleave', cancelPress);
-                cell.addEventListener('touchstart', (e) => { isScrolling = false; startPress(dateKey); });
-                cell.addEventListener('touchmove', (e) => { isScrolling = true; cancelPress(); });
-                cell.addEventListener('touchend', (e) => { e.preventDefault(); handleRelease(dateKey); });
-                cell.addEventListener('click', function () {
-                    // Tap Animation Trigger
-                    this.classList.remove('tap-animate');
-                    void this.offsetWidth; // trigger reflow
-                    this.classList.add('tap-animate');
-                });
-                cell.oncontextmenu = (e) => { e.preventDefault(); e.stopPropagation(); return false; };
-
+            for(let i=0; i<start; i++) grid.appendChild(document.createElement('div'));
+            
+            for(let i=1; i<=last; i++) {
+                const date = new Date(currentDate.getFullYear(), currentDate.getMonth(), i);
+                const key = formatDateKey(date);
+                const isToday = key === todayKey;
+                const isPeriod = periodData[key];
+                const isSelected = key === selectionStart;
+                
+                const cell = document.createElement('div');
+                cell.className = `cal-day cursor-pointer text-sm ${isPeriod ? 'active' : ''} ${isToday ? 'today' : ''} ${isSelected ? 'ring-2 ring-accent' : ''}`;
+                cell.textContent = i;
+                
+                if(!isPeriod && forecasts.includes(key)) cell.classList.add('predicted');
+                
+                cell.onclick = (e) => {
+                    handleDayClick(key);
+                };
+                
+                // Long press or something else for modal? For now, click twice for range.
+                // To delete or edit symptoms, we need a way to open the modal.
+                // Let's say: Click once -> select. If already selected -> open modal.
+                
                 grid.appendChild(cell);
             }
         }
 
-        function changeMonth(offset) {
-            currentDate.setMonth(currentDate.getMonth() + offset);
+        function handleDayClick(key) {
+            if(selectionStart === key) {
+                // Second click on same day -> cancel range and open modal (for symptoms)
+                selectionStart = null;
+                openModal(key);
+                return;
+            }
+
+            if(!selectionStart) {
+                if(periodData[key]) {
+                    delete periodData[key];
+                    saveData();
+                    renderCalendar();
+                } else {
+                    selectionStart = key;
+                    renderCalendar();
+                }
+            } else {
+                const start = new Date(selectionStart);
+                const end = new Date(key);
+                const d1 = start < end ? start : end;
+                const d2 = start < end ? end : start;
+                
+                let temp = new Date(d1);
+                while(temp <= d2) {
+                    periodData[formatDateKey(temp)] = true;
+                    temp.setDate(temp.getDate() + 1);
+                }
+                
+                selectionStart = null;
+                saveData();
+                renderCalendar();
+            }
+        }
+
+        function changeMonth(dir) {
+            currentDate.setMonth(currentDate.getMonth() + dir);
             renderCalendar();
         }
 
-        window.addEventListener('resize', () => {
-            const stats = getCycleStats();
-            renderChart(stats.cycles);
-        });
+        // --- MODAL ---
+        function openModal(key) {
+            selectedDateKey = key;
+            const d = new Date(key);
+            document.getElementById('modal-date').textContent = d.toLocaleDateString('de-DE', { day: 'numeric', month: 'long' });
+            document.getElementById('day-modal').classList.add('active');
+            updateModalUI();
+        }
+
+        function closeModal() { document.getElementById('day-modal').classList.remove('active'); }
+
+        function updateModalUI() {
+            const btn = document.getElementById('modal-period-toggle');
+            const isActive = periodData[selectedDateKey];
+            btn.textContent = isActive ? "Ja (Aktiv)" : "Nein";
+            btn.className = isActive ? "px-6 py-2 rounded-full font-black text-xs uppercase bg-white text-black" : "px-6 py-2 rounded-full font-black text-xs uppercase bg-white/10 text-white";
+            
+            const syms = symptomData[selectedDateKey] || {};
+            document.querySelectorAll('.sym-btn').forEach(b => {
+               b.style.opacity = syms.mood === b.dataset.val ? "1" : "0.3";
+            });
+        }
+
+        function togglePeriodFromModal() {
+            if(periodData[selectedDateKey]) delete periodData[selectedDateKey];
+            else periodData[selectedDateKey] = true;
+            saveData(); updateModalUI(); renderCalendar();
+        }
+
+        function toggleSymptom(val) {
+            if(!symptomData[selectedDateKey]) symptomData[selectedDateKey] = {};
+            symptomData[selectedDateKey].mood = val;
+            saveData(); updateModalUI();
+        }
+
+        // --- ANALYSIS ---
+        function getStats() {
+            const keys = Object.keys(periodData).sort();
+            if(!keys.length) return {};
+            
+            let periods = [];
+            let current = [keys[0]];
+            for(let i=1; i<keys.length; i++) {
+                const diff = (new Date(keys[i]) - new Date(keys[i-1])) / 86400000;
+                if(diff <= 1.5) current.push(keys[i]);
+                else { periods.push(current); current = [keys[i]]; }
+            }
+            periods.push(current);
+            
+            let lengths = [];
+            for(let i=0; i<periods.length-1; i++) {
+                lengths.push((new Date(periods[i+1][0]) - new Date(periods[i][0])) / 86400000);
+            }
+            
+            if(!lengths.length) return { lastStart: periods[periods.length-1][0], predictedLen: settings.cycleLength, avgDuration: Math.round(periods[0].length), history: [] };
+
+            // Improved Logic: Median & Recent Trend
+            const sorted = [...lengths].sort((a,b) => a-b);
+            const median = sorted[Math.floor(sorted.length/2)];
+            const recentAvg = lengths.slice(-3).reduce((a,b)=>a+b, 0) / Math.min(lengths.length, 3);
+            
+            let finalPrediction = Math.round((median + recentAvg) / 2);
+            
+            // Variability Check
+            const variance = lengths.reduce((a,b) => a + Math.pow(b - finalPrediction, 2), 0) / lengths.length;
+            const isIrregular = Math.sqrt(variance) > 5;
+
+            const avgDur = Math.round(periods.reduce((a,b)=>a+b.length, 0) / periods.length);
+            
+            return { 
+                lastStart: periods[periods.length-1][0], 
+                predictedLen: finalPrediction, 
+                avgDuration: avgDur, 
+                history: lengths,
+                isIrregular: isIrregular
+            };
+        }
+
+        function renderInsights() {
+            const stats = getStats();
+            const container = document.getElementById('chart-container');
+            if(!stats.history || stats.history.length < 2) {
+                container.innerHTML = "Dafür werden mehr Daten benötigt.";
+                return;
+            }
+            // Simple bar chart logic
+            const max = Math.max(...stats.history);
+            container.innerHTML = stats.history.slice(-5).map(h => `
+                <div class="flex flex-col items-center gap-2 flex-1">
+                    <div class="w-2 bg-primary rounded-full" style="height: ${(h/max)*100}%"></div>
+                    <span class="text-[8px]">${h}d</span>
+                </div>
+            `).join('');
+        }
+
+        // --- UTILS ---
+        function formatDateKey(d) { return d.toISOString().split('T')[0]; }
+        function saveSettings() { settings.cycleLength = parseInt(document.getElementById('setting-cycle-input').value); saveData(); }
+        function togglePrivacy() { document.body.classList.toggle('privacy'); }
+        function confirmReset() { if(confirm("Wirklich ALLES löschen?")) { localStorage.clear(); location.reload(); } }
+        
+        function exportData() {
+            const data = { periodData, symptomData, settings };
+            const blob = new Blob([JSON.stringify(data)], {type: 'application/json'});
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a'); a.href = url; a.download = 'lunar_flow_backup.json'; a.click();
+        }
+
+        function importData(input) {
+            const reader = new FileReader();
+            reader.onload = e => {
+                const data = JSON.parse(e.target.result);
+                periodData = data.periodData || {};
+                symptomData = data.symptomData || {};
+                settings = data.settings || settings;
+                saveData(); location.reload();
+            };
+            reader.readAsText(input.files[0]);
+        }
 
         init();
     </script>
 </body>
-
 </html>
