@@ -308,6 +308,55 @@
                         </div>
                     </div>
                 </div>
+                <!-- Daily Log Section -->
+                <div class="glass p-6">
+                    <p class="text-[10px] font-black uppercase tracking-widest opacity-40 mb-4 flex justify-between items-center">
+                        Daily Log <span>Heute</span>
+                    </p>
+                    <div class="grid gap-6">
+                        <!-- Mood -->
+                        <div>
+                            <p class="text-[8px] font-black uppercase opacity-30 mb-3">Stimmung</p>
+                            <div class="flex justify-between gap-2">
+                                <button onclick="toggleSymptom('mood', 'happy')" class="sym-log-btn flex-1 p-3 rounded-2xl glass border-white/5 transition flex flex-col items-center gap-1" data-type="mood" data-val="happy">
+                                    <span class="text-xl">😊</span>
+                                    <span class="text-[8px] font-black uppercase opacity-40">Happy</span>
+                                </button>
+                                <button onclick="toggleSymptom('mood', 'sad')" class="sym-log-btn flex-1 p-3 rounded-2xl glass border-white/5 transition flex flex-col items-center gap-1" data-type="mood" data-val="sad">
+                                    <span class="text-xl">😔</span>
+                                    <span class="text-[8px] font-black uppercase opacity-40">Sad</span>
+                                </button>
+                                <button onclick="toggleSymptom('mood', 'angry')" class="sym-log-btn flex-1 p-3 rounded-2xl glass border-white/5 transition flex flex-col items-center gap-1" data-type="mood" data-val="angry">
+                                    <span class="text-xl">😤</span>
+                                    <span class="text-[8px] font-black uppercase opacity-40">Angry</span>
+                                </button>
+                                <button onclick="toggleSymptom('mood', 'tired')" class="sym-log-btn flex-1 p-3 rounded-2xl glass border-white/5 transition flex flex-col items-center gap-1" data-type="mood" data-val="tired">
+                                    <span class="text-xl">😴</span>
+                                    <span class="text-[8px] font-black uppercase opacity-40">Tired</span>
+                                </button>
+                            </div>
+                        </div>
+                        <!-- Pain -->
+                        <div>
+                            <p class="text-[8px] font-black uppercase opacity-30 mb-3">Körper</p>
+                            <div class="flex gap-2">
+                                <button onclick="toggleSymptom('pain', 'head')" class="sym-log-btn flex-1 p-3 rounded-2xl glass border-white/5 transition flex flex-col items-center gap-1" data-type="pain" data-val="head">
+                                    <span class="text-xl">🧠</span>
+                                    <span class="text-[8px] font-black uppercase opacity-40">Kopf</span>
+                                </button>
+                                <button onclick="toggleSymptom('pain', 'cramps')" class="sym-log-btn flex-1 p-3 rounded-2xl glass border-white/5 transition flex flex-col items-center gap-1" data-type="pain" data-val="cramps">
+                                    <span class="text-xl">⚡</span>
+                                    <span class="text-[8px] font-black uppercase opacity-40">Krämpfe</span>
+                                </button>
+                                <button onclick="toggleSymptom('pain', 'back')" class="sym-log-btn flex-1 p-3 rounded-2xl glass border-white/5 transition flex flex-col items-center gap-1" data-type="pain" data-val="back">
+                                    <span class="text-xl">🦴</span>
+                                    <span class="text-[8px] font-black uppercase opacity-40">Rücken</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
 
                 <div class="glass p-6">
                     <h3 class="text-xs font-black uppercase tracking-widest opacity-40 mb-4 flex items-center"><i class="fa-solid fa-wand-magic-sparkles mr-2"></i> Tipps für dich</h3>
@@ -372,6 +421,13 @@
                     <div id="ins-consistency-bar" class="w-16 h-16 rounded-full border-4 border-white/5 flex items-center justify-center text-xs font-black">--%</div>
                 </div>
 
+                <!-- Comprehensive Symptoms Analysis -->
+                <div class="glass p-6">
+                    <h3 class="text-xs font-black uppercase tracking-widest opacity-40 mb-4 flex items-center"><i class="fa-solid fa-chart-pie mr-2"></i> Deine Highlights</h3>
+                    <div id="ins-symptoms-list" class="grid grid-cols-1 gap-3">
+                        <p class="text-xs opacity-30 italic">Sammle mehr Daten...</p>
+                    </div>
+                </div>
 
                 <!-- History Chart replacement -->
                 <div class="glass p-6">
@@ -508,10 +564,26 @@
         let isPrivacyMode = false;
 
         const PHASES = {
-            MENSTRUATION: { name: "Menstruation", tips: "✨ Gönn dir Ruhe & Wärme. <br>🥗 Iss Eisenreiches & Nüsse. <br>🚫 Vermeide Koffein.", color: "#f43f5e", bg: "#450a0a" },
-            FOLLICULAR: { name: "Follikelphase", tips: "⚡ Energie steigt! Perfekt für Sport. <br>🥗 Ess frisches Gemüse & Proteine.", color: "#ec4899", bg: "#4a044e" },
-            OVULATION: { name: "Eisprung", tips: "🔥 Höchstform! Power dich aus. <br>🥗 Iss Ballaststoffe & Beeren.", color: "#a855f7", bg: "#3b0764" },
-            LUTEAL: { name: "Lutealphase", tips: "🌙 Zeit für Rückzug. Sei sanft zu dir. <br>🥗 Magnesium hilft gegen Heißhunger.", color: "#4f46e5", bg: "#1e1b4b" }
+            MENSTRUATION: { 
+                name: "Menstruation", 
+                tips: "✨ **Slay from the sofa.** Schnapp dir Wärme & Schoki. <br>🥗 **Eat your greens.** Eisen & Magnesium sind jetzt Pflicht. <br>🚫 **Kein Stress.** Sag 'Nein' zu allem, was nervt.", 
+                color: "#f43f5e", bg: "#450a0a" 
+            },
+            FOLLICULAR: { 
+                name: "Follikelphase", 
+                tips: "⚡ **Energie-Peak!** Zeit für dein nächstes großes Projekt. <br>🥗 **Glow-food.** Viel Proteine & frische Vitamine. <br>🔥 **Work it.** Dein Körper ist jetzt auf Höchstleistung.", 
+                color: "#ec4899", bg: "#4a044e" 
+            },
+            OVULATION: { 
+                name: "Eisprung", 
+                tips: "🔥 **Unstoppable.** Heute gehört dir die Welt. <br>🥗 **Hydrate.** Viel Wasser für den ultimativen Glow. <br>✨ **Main Character.** Perfekt für Dates & Deals.", 
+                color: "#a855f7", bg: "#3b0764" 
+            },
+            LUTEAL: { 
+                name: "Lutealphase", 
+                tips: "🌙 **Protect your peace.** Rückzug ist jetzt Boss-Verhalten. <br>🥗 **Anti-Heißhunger.** Gesunde Fette & komplexe Carbs. <br>🤫 **Chill-Modus.** Lass die anderen labern, du ruhst dich aus.", 
+                color: "#4f46e5", bg: "#1e1b4b" 
+            }
         };
 
         // --- INIT ---
@@ -704,6 +776,33 @@
             
             if(idleUI) idleUI.classList.toggle('hidden', isLive);
             if(activeUI) activeUI.classList.toggle('hidden', !isLive);
+
+            updateDailyLogUI();
+        }
+
+        function updateDailyLogUI() {
+            const today = formatDateKey(new Date());
+            const data = symptomData[today] || {};
+            
+            document.querySelectorAll('.sym-log-btn').forEach(btn => {
+                const type = btn.dataset.type;
+                const val = btn.dataset.val;
+                const active = data[type] === val;
+                btn.style.background = active ? 'var(--primary)' : 'rgba(255,255,255,0.05)';
+                btn.style.borderColor = active ? 'var(--primary)' : 'rgba(255,255,255,0.05)';
+                btn.querySelector('span:last-child').style.opacity = active ? '1' : '0.4';
+            });
+        }
+
+        function toggleSymptom(type, val) {
+            const today = formatDateKey(new Date());
+            if(!symptomData[today]) symptomData[today] = {};
+            
+            if(symptomData[today][type] === val) delete symptomData[today][type];
+            else symptomData[today][type] = val;
+            
+            saveData();
+            updateDailyLogUI();
         }
 
         // --- CALENDAR ---
@@ -895,24 +994,31 @@
                 if(consistencyLabel) consistencyLabel.textContent = "Berechne...";
             }
 
-            // Symptoms Ranking
+            // Symptoms Ranking (Dynamic for all logged types)
             const counts = {};
+            const itemMap = {
+                happy: "😊 Happy", sad: "😔 Sad", angry: "😤 Angry", tired: "😴 Müde",
+                head: "🧠 Kopf", cramps: "⚡ Krämpfe", back: "🦴 Rücken"
+            };
+
             Object.values(symptomData).forEach(day => {
-                day.symptoms?.forEach(s => counts[s] = (counts[s] || 0) + 1);
+                Object.values(day).forEach(val => {
+                    if(itemMap[val]) counts[val] = (counts[val] || 0) + 1;
+                });
             });
             
-            const sortedSymp = Object.entries(counts).sort((a,b) => b[1] - a[1]).slice(0, 3);
+            const sortedSymp = Object.entries(counts).sort((a,b) => b[1] - a[1]).slice(0, 4);
             const sympList = document.getElementById('ins-symptoms-list');
             if(sympList) {
                 if(sortedSymp.length > 0) {
-                    sympList.innerHTML = sortedSymp.map(([name, count]) => `
-                        <div class="flex justify-between items-center bg-white/5 p-3 rounded-xl">
-                            <span class="text-sm font-bold capitalize">${name}</span>
-                            <span class="text-[10px] font-black text-primary">${count}x</span>
+                    sympList.innerHTML = sortedSymp.map(([val, count]) => `
+                        <div class="flex justify-between items-center bg-white/5 p-3 rounded-xl border border-white/5 shadow-sm">
+                            <span class="text-sm font-bold">${itemMap[val]}</span>
+                            <span class="text-[10px] font-black text-primary bg-primary/10 px-2 py-1 rounded-lg">${count}x geloggt</span>
                         </div>
                     `).join('');
                 } else {
-                    sympList.innerHTML = `<p class="text-xs opacity-30 italic">Keine Symptome geloggt</p>`;
+                    sympList.innerHTML = `<p class="text-xs opacity-30 italic">Noch keine Logs vorhanden</p>`;
                 }
             }
 
