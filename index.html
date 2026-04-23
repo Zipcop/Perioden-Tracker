@@ -131,8 +131,8 @@
         .nav-item.active {
             background: var(--primary);
             color: white;
-            box-shadow: 0 0 20px var(--primary);
-            transform: scale(1.1) translateY(-5px);
+            box-shadow: 0 0 25px var(--primary);
+            transform: scale(1.1);
         }
 
         /* Lunar Wheel */
@@ -287,24 +287,25 @@
                     <div class="absolute -right-10 -bottom-10 text-[120px] opacity-10 rotate-12"><i class="fa-solid fa-moon"></i></div>
                 </div>
 
-                <!-- Live Track Action -->
-                <div id="live-action-card" class="glass p-6 border-primary/20 hidden">
-                    <div class="flex justify-between items-center">
-                        <div>
-                            <p class="text-xs font-black uppercase tracking-widest text-primary mb-1">Periode läuft gerade</p>
-                            <p class="text-[10px] opacity-40">Tage werden automatisch gefüllt</p>
+                <!-- Persistent Live Track Action -->
+                <div class="glass p-6 border-primary/10">
+                    <div id="live-status-idle">
+                        <div class="flex justify-between items-center cursor-pointer" onclick="startLivePeriod()">
+                            <div>
+                                <p class="text-xs font-black uppercase tracking-widest opacity-40 mb-1">Live Tracking</p>
+                                <p class="text-[10px] text-primary font-bold">Heute gestartet? Hier tippen.</p>
+                            </div>
+                            <i class="fa-solid fa-play text-primary opacity-50"></i>
                         </div>
-                        <button onclick="stopLivePeriod()" class="bg-primary/20 hover:bg-primary/30 text-primary px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition">Jetzt Beenden</button>
                     </div>
-                </div>
-                
-                <div id="start-action-card" class="glass p-6 hover:bg-white/5 cursor-pointer transition hidden" onclick="startLivePeriod()">
-                    <div class="flex justify-between items-center">
-                        <div>
-                            <p class="text-xs font-black uppercase tracking-widest opacity-40 mb-1">Periode heute gestartet?</p>
-                            <p class="text-[10px] opacity-30 text-primary">Live-Tracking aktivieren</p>
+                    <div id="live-status-active" class="hidden">
+                        <div class="flex justify-between items-center">
+                            <div>
+                                <p class="text-xs font-black uppercase tracking-widest text-primary mb-1">Tracking Aktiv</p>
+                                <p class="text-[10px] opacity-40">Tage werden automatisch gefüllt</p>
+                            </div>
+                            <button onclick="stopLivePeriod()" class="bg-primary/20 hover:bg-primary/30 text-primary px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition border border-primary/20">Beenden</button>
                         </div>
-                        <i class="fa-solid fa-play text-primary opacity-50"></i>
                     </div>
                 </div>
 
@@ -343,19 +344,49 @@
         <!-- INSIGHTS VIEW -->
         <section id="view-insights" class="view">
             <h2 class="text-3xl font-black mb-8">Analyse</h2>
-            <div class="grid grid-cols-2 gap-4 mb-6 blur-content">
+            
+            <div class="grid grid-cols-2 gap-4 mb-6">
                 <div class="glass p-6">
-                    <p class="text-[10px] font-black uppercase opacity-40 mb-1">Ø Zyklus</p>
-                    <p id="stat-cycle-len" class="text-3xl font-black">--</p>
+                    <p class="text-[10px] font-black uppercase tracking-widest opacity-40 mb-2">Ø Zyklus</p>
+                    <div class="flex items-baseline gap-2">
+                        <span id="ins-avg-cycle" class="text-3xl font-black">--</span>
+                        <span class="text-xs opacity-40">Tage</span>
+                    </div>
                 </div>
                 <div class="glass p-6">
-                    <p class="text-[10px] font-black uppercase opacity-40 mb-1">Ø Dauer</p>
-                    <p id="stat-period-len" class="text-3xl font-black">--</p>
+                    <p class="text-[10px] font-black uppercase tracking-widest opacity-40 mb-2">Ø Dauer</p>
+                    <div class="flex items-baseline gap-2">
+                        <span id="ins-avg-dur" class="text-3xl font-black">--</span>
+                        <span class="text-xs opacity-40">Tage</span>
+                    </div>
                 </div>
             </div>
-            <div class="glass p-6 h-64 blur-content">
-                 <p class="text-[10px] font-black uppercase opacity-40 mb-6">Verlauf</p>
-                 <div id="chart-container" class="h-40 flex items-center justify-center text-xs opacity-40 uppercase font-black">Keine Daten vorhanden</div>
+
+            <div class="grid gap-6 mb-6">
+                <!-- Consistency Card -->
+                <div class="glass p-6 flex items-center justify-between">
+                    <div>
+                        <p class="text-[10px] font-black uppercase tracking-widest opacity-40 mb-1 text-primary">Regelmäßigkeit</p>
+                        <h3 id="ins-consistency" class="text-xl font-black">Berechne...</h3>
+                    </div>
+                    <div id="ins-consistency-bar" class="w-16 h-16 rounded-full border-4 border-white/5 flex items-center justify-center text-xs font-black">--%</div>
+                </div>
+
+                <!-- Symptoms Analysis -->
+                <div class="glass p-6">
+                    <h3 class="text-xs font-black uppercase tracking-widest opacity-40 mb-4 flex items-center"><i class="fa-solid fa-chart-pie mr-2"></i> Häufigste Symptome</h3>
+                    <div id="ins-symptoms-list" class="space-y-3">
+                        <p class="text-sm opacity-30 italic">Noch keine Daten vorhanden...</p>
+                    </div>
+                </div>
+
+                <!-- History Chart replacement -->
+                <div class="glass p-6">
+                    <h3 class="text-xs font-black uppercase tracking-widest opacity-40 mb-4 flex items-center"><i class="fa-solid fa-clock-rotate-left mr-2"></i> Letzte Zyklen</h3>
+                    <div id="ins-history-list" class="space-y-4">
+                        <div class="text-center py-8 opacity-20"><i class="fa-solid fa-database text-4xl mb-2"></i><br>Mehr Daten benötigt</div>
+                    </div>
+                </div>
             </div>
         </section>
 
@@ -662,15 +693,13 @@
                 document.getElementById('fluid-bg').style.background = `radial-gradient(circle at 50% 50%, #1e1b4b 0%, #020617 100%)`;
             }
 
-            // --- LIVE CARDS ---
+            // --- LIVE TRACKING STATUS ---
             const isLive = !!settings.activePeriodStart;
-            const liveCard = document.getElementById('live-action-card');
-            const startCard = document.getElementById('start-action-card');
-            if(liveCard) liveCard.classList.toggle('hidden', !isLive);
-            if(startCard) startCard.classList.toggle('hidden', isLive || periodData[formatDateKey(today)]);
-
-            document.getElementById('stat-cycle-len').textContent = stats.predictedLen ? stats.predictedLen + " d" : "--";
-            document.getElementById('stat-period-len').textContent = stats.avgDuration ? stats.avgDuration + " d" : "--";
+            const idleUI = document.getElementById('live-status-idle');
+            const activeUI = document.getElementById('live-status-active');
+            
+            if(idleUI) idleUI.classList.toggle('hidden', isLive);
+            if(activeUI) activeUI.classList.toggle('hidden', !isLive);
         }
 
         // --- CALENDAR ---
@@ -722,17 +751,12 @@
                     handleDayClick(key);
                 };
                 
-                // Long press or something else for modal? For now, click twice for range.
-                // To delete or edit symptoms, we need a way to open the modal.
-                // Let's say: Click once -> select. If already selected -> open modal.
-                
                 grid.appendChild(cell);
             }
         }
 
         function handleDayClick(key) {
             if(selectionStart === key) {
-                // Second click on same day -> cancel range and open modal (for symptoms)
                 selectionStart = null;
                 openModal(key);
                 return;
@@ -819,52 +843,102 @@
             }
             periods.push(current);
             
-            let lengths = [];
+            let cycles = [];
             for(let i=0; i<periods.length-1; i++) {
-                lengths.push((new Date(periods[i+1][0]) - new Date(periods[i][0])) / 86400000);
+                cycles.push({
+                    start: periods[i][0],
+                    length: (new Date(periods[i+1][0]) - new Date(periods[i][0])) / 86400000,
+                    duration: periods[i].length
+                });
             }
             
-            if(!lengths.length) return { lastStart: periods[periods.length-1][0], predictedLen: settings.cycleLength, avgDuration: Math.round(periods[0].length), history: [] };
-
-            // Improved Logic: Median & Recent Trend
-            const sorted = [...lengths].sort((a,b) => a-b);
-            const median = sorted[Math.floor(sorted.length/2)];
-            const recentAvg = lengths.slice(-3).reduce((a,b)=>a+b, 0) / Math.min(lengths.length, 3);
-            
-            let finalPrediction = Math.round((median + recentAvg) / 2);
-            
-            // Variability Check
-            const variance = lengths.reduce((a,b) => a + Math.pow(b - finalPrediction, 2), 0) / lengths.length;
-            const isIrregular = Math.sqrt(variance) > 5;
-
-            const avgDur = Math.round(periods.reduce((a,b)=>a+b.length, 0) / periods.length);
+            const avgCycle = cycles.length ? Math.round(cycles.reduce((a,b) => a + b.length, 0) / cycles.length) : settings.cycleLength;
+            const avgDuration = Math.round(periods.reduce((a,b) => a + b.length, 0) / periods.length);
             
             return { 
                 lastStart: periods[periods.length-1][0], 
-                predictedLen: finalPrediction, 
-                avgDuration: avgDur, 
-                history: lengths,
-                isIrregular: isIrregular
+                predictedLen: avgCycle, 
+                avgDuration: avgDuration, 
+                avgCycle: avgCycle,
+                cycles: cycles
             };
         }
 
         function renderInsights() {
             const stats = getStats();
-            const container = document.getElementById('chart-container');
-            if(!stats.history || stats.history.length < 2) {
-                container.innerHTML = "Dafür werden mehr Daten benötigt.";
-                return;
+            const cycles = stats.cycles || [];
+            
+            document.getElementById('ins-avg-cycle').textContent = stats.avgCycle || "--";
+            document.getElementById('ins-avg-dur').textContent = stats.avgDuration || "--";
+            
+            // Consistency
+            const consistencyLabel = document.getElementById('ins-consistency');
+            const consistencyBar = document.getElementById('ins-consistency-bar');
+            
+            if(cycles.length > 1) {
+                const diffs = [];
+                for(let i=0; i<cycles.length-1; i++) {
+                    diffs.push(Math.abs(cycles[i].length - stats.avgCycle));
+                }
+                const avgDiff = diffs.reduce((a,b) => a+b, 0) / diffs.length;
+                const score = Math.max(0, 100 - (avgDiff * 5));
+                if(consistencyLabel) consistencyLabel.textContent = score > 90 ? "Sehr regelmäßig" : score > 75 ? "Regelmäßig" : "Unregelmäßig";
+                if(consistencyBar) {
+                    consistencyBar.textContent = Math.round(score) + "%";
+                    consistencyBar.style.borderColor = score > 75 ? 'var(--primary)' : '#ef4444';
+                }
+            } else {
+                if(consistencyLabel) consistencyLabel.textContent = "Berechne...";
             }
-            // Simple bar chart logic
-            const max = Math.max(...stats.history);
-            container.innerHTML = stats.history.slice(-5).map(h => `
-                <div class="flex flex-col items-center gap-2 flex-1">
-                    <div class="w-2 bg-primary rounded-full" style="height: ${(h/max)*100}%"></div>
-                    <span class="text-[8px]">${h}d</span>
-                </div>
-            `).join('');
-        }
 
+            // Symptoms Ranking
+            const counts = {};
+            Object.values(symptomData).forEach(day => {
+                day.symptoms?.forEach(s => counts[s] = (counts[s] || 0) + 1);
+            });
+            
+            const sortedSymp = Object.entries(counts).sort((a,b) => b[1] - a[1]).slice(0, 3);
+            const sympList = document.getElementById('ins-symptoms-list');
+            if(sympList) {
+                if(sortedSymp.length > 0) {
+                    sympList.innerHTML = sortedSymp.map(([name, count]) => `
+                        <div class="flex justify-between items-center bg-white/5 p-3 rounded-xl">
+                            <span class="text-sm font-bold capitalize">${name}</span>
+                            <span class="text-[10px] font-black text-primary">${count}x</span>
+                        </div>
+                    `).join('');
+                } else {
+                    sympList.innerHTML = `<p class="text-xs opacity-30 italic">Keine Symptome geloggt</p>`;
+                }
+            }
+
+            // History List
+            const histList = document.getElementById('ins-history-list');
+            if(histList) {
+                if(cycles.length > 0) {
+                    histList.innerHTML = cycles.slice().reverse().map(c => `
+                        <div class="flex items-center gap-4">
+                            <div class="w-12 h-12 rounded-xl bg-primary/10 flex flex-col items-center justify-center">
+                                <span class="text-[10px] font-black">${new Date(c.start).toLocaleDateString('de-DE', {day: '2-digit'})}</span>
+                                <span class="text-[8px] opacity-40 uppercase">${new Date(c.start).toLocaleDateString('de-DE', {month: 'short'})}</span>
+                            </div>
+                            <div class="flex-1">
+                                <div class="flex justify-between mb-1">
+                                    <span class="text-xs font-bold">${Math.round(c.length)} Tage Zyklus</span>
+                                    <span class="text-[10px] opacity-40">${c.duration} Tage Periode</span>
+                                </div>
+                                <div class="w-full h-1.5 bg-white/5 rounded-full overflow-hidden">
+                                    <div class="h-full bg-primary" style="width: ${Math.min(100, (c.length/40)*100)}%"></div>
+                                </div>
+                            </div>
+                        </div>
+                    `).join('');
+                } else {
+                    histList.innerHTML = `<div class="text-center py-4 opacity-20 text-xs uppercase font-black tracking-widest">Mehr Daten benötigt</div>`;
+                }
+            }
+        }
+极647,880,647,880,647,880,647,880,647,880,647,880,647,880,647,880,647,880,647,880,647,880,647,880,647,880,647,880,647,880,647,880,647,880,647,880,647,880,647,880,647,880,647,880,647,880,647,880,647,880,647,880,647,880,647,880,647,880,647,880,647,880,647,880,647,880,647,880,647,880,647,880,647,880,647,880,647,880,647,880,647,880,647,880,647,880,647,880,647,880,647,880,647,880,647,880,647,880,647,880,647,880,647,880,647,880,647,880,647,880,647,880,647,880,647,880,647,880,647,880,647,880,647,880,647,880,647,880,647,880,647,880,647,880,647,880,647,880,647,880,647,880,647,880,647,880,647,880,647,880,647,880,647,880,647,880,647,880,647,880,647,880
         // --- UTILS ---
         function formatDateKey(d) { return d.toISOString().split('T')[0]; }
         function saveSettings() { settings.cycleLength = parseInt(document.getElementById('setting-cycle-input').value); saveData(); }
