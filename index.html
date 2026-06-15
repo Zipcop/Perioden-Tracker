@@ -1084,7 +1084,12 @@
         }
 
         // --- UTILS ---
-        function formatDateKey(d) { return d.toISOString().split('T')[0]; }
+        function formatDateKey(d) {
+            const y = d.getFullYear();
+            const m = String(d.getMonth() + 1).padStart(2, '0');
+            const day = String(d.getDate()).padStart(2, '0');
+            return `${y}-${m}-${day}`;
+        }
         function saveSettings() { settings.cycleLength = parseInt(document.getElementById('setting-cycle-input').value); saveData(); }
         function togglePrivacy() { document.body.classList.toggle('privacy'); }
         function confirmReset() { if(confirm("Wirklich ALLES löschen?")) { localStorage.clear(); location.reload(); } }
